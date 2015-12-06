@@ -139,7 +139,14 @@ def list_videos(category, offset):
         #  list_item.setInfo('video', {'title': video['description']['fi']})
         # Set additional graphics (banner, poster, landscape etc.) for the list item.
         # Again, here we use the same image as the thumbnail for simplicity's sake.
-        #list_item.setArt({'landscape': video['thumb']})
+
+        if 'available' in video['image']:
+          #print("Available field exists")
+          if video['image']['available']:
+            imageUrl = 'http://images.cdn.yle.fi/image/upload/w_240,h_240,c_fit/{0}.png'.format(video['image']['id'])
+            #print("Image url is " + imageUrl)
+            #list_item.setArt({'landscape': imageUrl})
+            list_item.setThumbnailImage(imageUrl)
         # Set 'IsPlayable' property to 'true'.
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
