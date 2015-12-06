@@ -21,6 +21,7 @@ _handle = int(sys.argv[1])
 _appId = credentials._appId
 _appKey = credentials._appKey
 _secretKey = credentials._secretKey
+_unplayableCategories = ["5-162", "5-164"]
 
 
 def get_categories():
@@ -80,6 +81,9 @@ def list_categories():
           continue
         if 'id' not in category['broader']:
           continue
+        if category['id'] in _unplayableCategories:
+          continue
+
         if category['broader']['id'] == '5-130':
           # Create a list item with a text label and a thumbnail image.
           list_item = xbmcgui.ListItem(label=category['title']['fi'])
