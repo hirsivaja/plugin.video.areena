@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.areena"
+version="1.2.0"
+name="Areena API plugin"
+provider-name="Samuli Lappi">
+<requires>
+  <import addon="xbmc.python" version="2.14.0"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="main.py">
+  <provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+  <summary lang="en">Areena API plugin</summary>
+  <description lang="en">YLE Areena plugin, toteutettu virallisen rajapinnan avulla</description>
+</extension>
+</addon>
