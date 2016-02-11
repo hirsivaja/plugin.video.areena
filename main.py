@@ -194,7 +194,7 @@ def play_video(path):
     """
     url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + _app_id + "&app_key=" + _app_key
     data = get_json(url)
-
+    subtitle_list = []
     for publication in data['data']['publicationEvent']:
         log(publication['temporalStatus'])
         if publication['temporalStatus'] == 'currently':
@@ -202,15 +202,18 @@ def play_video(path):
             url = "https://external.api.yle.fi/v1/media/playouts.json?" \
                   "program_id=" + path + \
                   "&media_id=" + publication['media']['id'] + \
-                  "&hardsubtitles=true" \
                   "&protocol=HLS&app_id=" + _app_id + \
                   "&app_key=" + _app_key
             playout_data = get_json(url)
             encrypted_url = playout_data['data'][0]['url']
+            subtitles = playout_data['data'][0]['subtitles']
+            for subtitle in subtitles:
+                subtitle_list.append(subtitle['uri'])
             path = decrypt_url(encrypted_url)
     log("decrypted path: " + path)
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
+    play_item.setSubtitles(subtitle_list)
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
 
