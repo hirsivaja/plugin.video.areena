@@ -9,6 +9,9 @@ import json
 import base64
 from Crypto.Cipher import AES
 from urlparse import parse_qsl
+import datetime
+import time
+import re
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -23,9 +26,12 @@ _handle = int(sys.argv[1])
 _app_id = credentials._appId
 _app_key = credentials._appKey
 _secret_key = credentials._secretKey
-_unplayableCategories = ["5-162", "5-164"]
+
 _addonid = 'plugin.video.areena'
 _addon = xbmcaddon.Addon(id=_addonid)
+
+_yle_time_format = '%Y-%m-%dT%H:%M:%S'
+_unplayableCategories = ["5-162", "5-164"]
 
 
 def log(txt, log_level=xbmc.LOGDEBUG):
@@ -137,12 +143,17 @@ def list_videos(videos, offset_url):
     # list.append(('{0}', '...', True))
     # Iterate through videos.
     for video in videos:
+        info_labels = ()
+        video_stream_info = {}
         # Create a list item with a text label and a thumbnail image.
         if 'fi' in video['title']:
             list_item = xbmcgui.ListItem(label=video['title']['fi'])
+        elif 'sv' in video['title']:
+            list_item = xbmcgui.ListItem(label=video['title']['sv'])
+        elif 'en' in video['title']:
+            list_item = xbmcgui.ListItem(label=video['title']['en'])
         else:
-            log('no finnish title for video: {}'.format(video['title']), xbmc.LOGWARNING)
-
+            log('no title for video: {}'.format(video['title']), xbmc.LOGWARNING)
         # Set a fanart image for the list item.
         # Here we use the same image as the thumbnail for simplicity's sake.
         # list_item.setProperty('fanart_image', video['thumb'])
@@ -160,9 +171,43 @@ def list_videos(videos, offset_url):
                 # log("Image url is " + imageUrl)
                 # list_item.setArt({'landscape': imageUrl})
                 list_item.setThumbnailImage(image_url)
+        if 'fi' in video['description']:
+            info_labels = info_labels + ('plot', video['description']['fi'])
+        if 'duration' in video:
+            duration = get_timedelta_from_duration(video['duration'])
+            if duration is not None:
+                info_labels = info_labels + ('duration', duration.total_seconds())
+                video_stream_info = {'duration': duration.total_seconds()}
+        if 'partOfSeason' in video:
+            if 'seasonNumber' in video['partOfSeason']:
+                season_number = video['partOfSeason']['seasonNumber']
+                info_labels = info_labels + ('season', season_number)
+                list_item.setLabel(list_item.getLabel() + '|S' + str(season_number))
+        if 'episodeNumber' in video:
+            episode_number = video['episodeNumber']
+            info_labels = info_labels + ('episode', episode_number)
+            list_item.setLabel(list_item.getLabel() + '|E' + str(episode_number))
+        if 'itemTitle' in video:
+            if 'fi' in video['itemTitle']:
+                list_item.setLabel(list_item.getLabel() + ' - ' + video['itemTitle']['fi'].encode('utf-8'))
+        found_current_publication = False
+        for publication in video['publicationEvent']:
+            if publication['temporalStatus'] == 'currently':
+                found_current_publication = True
+                if 'endTime' in publication:
+                    ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
+                    now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
+                    ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
+                    list_item.setLabel("(" + str(ttl) + ")" + list_item.getLabel())
+                break
+        if not found_current_publication:
+            log("No publication with 'currently': {}".format(video['title']), xbmc.LOGWARNING)
+            continue
         # Set 'IsPlayable' property to 'true'.
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
+        list_item.setInfo(type='Video', infoLabels=info_labels)
+        list_item.addStreamInfo('video', video_stream_info)
         # Create a URL for the plugin recursive callback.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/vids/crab.mp4
         url = '{0}?action=play&video={1}'.format(_url, video['id'])
@@ -196,8 +241,7 @@ def play_video(path):
     data = get_json(url)
     subtitle_list = []
     for publication in data['data']['publicationEvent']:
-        log(publication['temporalStatus'])
-        if publication['temporalStatus'] == 'currently':
+        if publication['temporalStatus'] == 'currently' and 'id' in publication['media']:
             log("Found correct publication, media id: " + publication['media']['id'])
             url = "https://external.api.yle.fi/v1/media/playouts.json?" \
                   "program_id=" + path + \
@@ -210,6 +254,7 @@ def play_video(path):
             for subtitle in subtitles:
                 subtitle_list.append(subtitle['uri'])
             path = decrypt_url(encrypted_url)
+            break
     log("decrypted path: " + path)
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
@@ -287,6 +332,22 @@ def get_json(url):
     data = json.loads(response.read())
     log(data)
     return data
+
+
+def get_timedelta_from_duration(duration):
+    log(duration)
+    # From http://stackoverflow.com/a/2765366
+    regex = re.compile('(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
+                       'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
+    # Fetch the match groups with default value of 0 (not None)
+    duration = regex.match(duration).groupdict(0)
+
+    # Create the timedelta object from extracted groups
+    delta = datetime.timedelta(days=int(duration['days']) + (int(duration['months']) * 30) +
+                               (int(duration['years']) * 365), hours=int(duration['hours']),
+                               minutes=int(duration['minutes']), seconds=int(duration['seconds']))
+    log(delta)
+    return delta
 
 
 def router(param_string):
