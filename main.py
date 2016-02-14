@@ -91,7 +91,7 @@ def list_categories():
     # Create a list for our items.
     listing = []
     # Add static "categories"
-    search_list_item = xbmcgui.ListItem(label='[Haku]')
+    search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
     search_url = '{0}?action=search'.format(_url)
     listing.append((search_url, search_list_item, True))
     # Iterate through categories
@@ -105,7 +105,11 @@ def list_categories():
 
         if category['broader']['id'] == '5-130':
             # Create a list item with a text label and a thumbnail image.
-            list_item = xbmcgui.ListItem(label=category['title']['fi'])
+            for language_code in get_language_codes():
+                if language_code in category['title']:
+                    category_title = category['title'][language_code]
+                    break
+            list_item = xbmcgui.ListItem(label=category_title)
             # Set a fanart image for the list item.
             # Here we use the same image as the thumbnail for simplicity's sake.
             # list_item.setProperty('fanart_image', VIDEOS[category][0]['thumb'])
@@ -114,7 +118,7 @@ def list_categories():
             # setInfo allows to set various information for an item.
             # For available properties see the following link:
             # http://mirrors.xbmc.org/docs/python-docs/15.x-isengard/xbmcgui.html#ListItem-setInfo
-            list_item.setInfo('video', {'title': category['title']['fi'], 'genre': category['type']})
+            list_item.setInfo('video', {'title': category_title, 'genre': category['type']})
             # Create a URL for the plugin recursive callback.
             url = '{0}?action=listing&category={1}'.format(_url, category['id'])
             # is_folder = True means that this item opens a sub-list of lower level items.
@@ -145,15 +149,15 @@ def list_videos(videos, offset_url):
     for video in videos:
         info_labels = ()
         video_stream_info = {}
+        list_item = None
         # Create a list item with a text label and a thumbnail image.
-        if 'fi' in video['title']:
-            list_item = xbmcgui.ListItem(label=video['title']['fi'])
-        elif 'sv' in video['title']:
-            list_item = xbmcgui.ListItem(label=video['title']['sv'])
-        elif 'en' in video['title']:
-            list_item = xbmcgui.ListItem(label=video['title']['en'])
-        else:
+        for language_code in get_language_codes():
+            if language_code in video['title']:
+                list_item = xbmcgui.ListItem(label=str(video['title'][language_code].encode('utf-8')) + ' ')
+                break
+        if list_item is None:
             log('no title for video: {}'.format(video['title']), xbmc.LOGWARNING)
+            break
         # Set a fanart image for the list item.
         # Here we use the same image as the thumbnail for simplicity's sake.
         # list_item.setProperty('fanart_image', video['thumb'])
@@ -171,8 +175,10 @@ def list_videos(videos, offset_url):
                 # log("Image url is " + imageUrl)
                 # list_item.setArt({'landscape': imageUrl})
                 list_item.setThumbnailImage(image_url)
-        if 'fi' in video['description']:
-            info_labels = info_labels + ('plot', video['description']['fi'])
+        for language_code in get_language_codes():
+            if language_code in video['description']:
+                info_labels = info_labels + ('plot', video['description'][language_code].encode('utf-8'))
+                break
         if 'duration' in video:
             duration = get_timedelta_from_duration(video['duration'])
             if duration is not None:
@@ -182,23 +188,25 @@ def list_videos(videos, offset_url):
             if 'seasonNumber' in video['partOfSeason']:
                 season_number = video['partOfSeason']['seasonNumber']
                 info_labels = info_labels + ('season', season_number)
-                list_item.setLabel(list_item.getLabel() + '|S' + str(season_number))
+                list_item.setLabel(list_item.getLabel() + '[COLOR blue]S' + str(season_number) + '[/COLOR]')
         if 'episodeNumber' in video:
             episode_number = video['episodeNumber']
             info_labels = info_labels + ('episode', episode_number)
-            list_item.setLabel(list_item.getLabel() + '|E' + str(episode_number))
+            list_item.setLabel(list_item.getLabel() + '[COLOR blue]E' + str(episode_number) + '[/COLOR]')
         if 'itemTitle' in video:
-            if 'fi' in video['itemTitle']:
-                list_item.setLabel(list_item.getLabel() + ' - ' + video['itemTitle']['fi'].encode('utf-8'))
+            for language_code in get_language_codes():
+                if language_code in video['itemTitle']:
+                    list_item.setLabel(list_item.getLabel() + ' - ' + video['itemTitle'][language_code].encode('utf-8'))
+                    break
         found_current_publication = False
         for publication in video['publicationEvent']:
-            if publication['temporalStatus'] == 'currently':
+            if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
                 found_current_publication = True
                 if 'endTime' in publication:
                     ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                     now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
                     ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                    list_item.setLabel("(" + str(ttl) + ")" + list_item.getLabel())
+                    list_item.setLabel("[COLOR red]" + str(ttl) + "d[/COLOR] " + list_item.getLabel())
                 break
         if not found_current_publication:
             log("No publication with 'currently': {}".format(video['title']), xbmc.LOGWARNING)
@@ -218,7 +226,7 @@ def list_videos(videos, offset_url):
         listing.append((url, list_item, is_folder))
 
     if len(listing) > 24:
-        list_item = xbmcgui.ListItem(label="Next page")
+        list_item = xbmcgui.ListItem(label=get_translation(32008))
         listing.append((offset_url, list_item, True))
     # Add our listing to Kodi.
     # Large lists and/or slower systems benefit from adding all items at once via addDirectoryItems
@@ -241,7 +249,7 @@ def play_video(path):
     data = get_json(url)
     subtitle_list = []
     for publication in data['data']['publicationEvent']:
-        if publication['temporalStatus'] == 'currently' and 'id' in publication['media']:
+        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
             log("Found correct publication, media id: " + publication['media']['id'])
             url = "https://external.api.yle.fi/v1/media/playouts.json?" \
                   "program_id=" + path + \
@@ -276,10 +284,10 @@ def search(search_string=None, offset=0, clear_search=False):
     if search_string is None:
         log("Show search UI")
         listing = []
-        new_search_list_item = xbmcgui.ListItem(label='[Uusi haku]')
+        new_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32009) + ']')
         new_search_url = '{0}?action=new_search'.format(_url)
         listing.append((new_search_url, new_search_list_item, True))
-        clear_search_list_item = xbmcgui.ListItem(label='[Tyhjennä vanhat haut]')
+        clear_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32010) + ']')
         clear_search_url = '{0}?action=search&clear_search=1'.format(_url)
         listing.append((clear_search_url, clear_search_list_item, True))
         searches = _addon.getSetting("searches").splitlines()
@@ -348,6 +356,21 @@ def get_timedelta_from_duration(duration):
                                minutes=int(duration['minutes']), seconds=int(duration['seconds']))
     log(delta)
     return delta
+
+
+def get_language_codes():
+    language = int(_addon.getSetting("language"))
+    if language == 0:
+        return ['fi', 'sv', 'en']
+    elif language == 1:
+        return ['sv', 'fi', 'en']
+    elif language == 2:
+        return ['en', 'fi', 'sv']
+    raise ValueError('Unknown language {}'.format(language))
+
+
+def get_translation(id):
+    return _addon.getLocalizedString(id)
 
 
 def router(param_string):

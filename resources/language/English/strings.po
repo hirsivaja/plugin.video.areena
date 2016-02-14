@@ -22,3 +22,35 @@ msgstr ""
 msgctxt "#32002"
 msgid "Enable debug to kodi.log"
 msgstr ""
+
+msgctxt "#32003"
+msgid "Default language"
+msgstr ""
+
+msgctxt "#32004"
+msgid "Finnish"
+msgstr ""
+
+msgctxt "#32005"
+msgid "Swedish"
+msgstr ""
+
+msgctxt "#32006"
+msgid "English"
+msgstr ""
+
+msgctxt "#32007"
+msgid "Search"
+msgstr ""
+
+msgctxt "#32008"
+msgid "Next page"
+msgstr ""
+
+msgctxt "#32009"
+msgid "New search"
+msgstr ""
+
+msgctxt "#32010"
+msgid "Clear searches"
+msgstr ""

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <category label="32001">
-        <setting id="debug" type="boolean" label="32002" default="false" />
+        <setting id="debug" type="bool" label="32002" default="false" />
+        <setting id="language" type="enum" label="32003" lvalues="32004|32005|32006" default="0" />
     </category>
 </settings>
