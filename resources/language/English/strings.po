@@ -54,3 +54,47 @@ msgstr ""
 msgctxt "#32010"
 msgid "Clear searches"
 msgstr ""
+
+msgctxt "#32011"
+msgid "Sort type"
+msgstr ""
+
+msgctxt "#32012"
+msgid "Ascending"
+msgstr ""
+
+msgctxt "#32013"
+msgid "Descending"
+msgstr ""
+
+msgctxt "#32014"
+msgid "Default sort method"
+msgstr ""
+
+msgctxt "#32015"
+msgid "Most popular: 6h"
+msgstr ""
+
+msgctxt "#32016"
+msgid "Most popular: 24h"
+msgstr ""
+
+msgctxt "#32017"
+msgid "Most popular: week"
+msgstr ""
+
+msgctxt "#32018"
+msgid "Most popular: month"
+msgstr ""
+
+msgctxt "#32019"
+msgid "Time when viewing starts"
+msgstr ""
+
+msgctxt "#32020"
+msgid "Time when viewing ends"
+msgstr ""
+
+msgctxt "#32021"
+msgid "Time when updated"
+msgstr ""

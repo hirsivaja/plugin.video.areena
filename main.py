@@ -74,7 +74,7 @@ def get_videos(category, offset):
           "availability=ondemand" \
           "&mediaobject=video" \
           "&category=" + category + \
-          "&order=updated:desc" \
+          "&order=" + get_sort_method() + \
           "&contentprotection=22-0,22-1" \
           "&offset=" + str(offset) + \
           "&app_id=" + _app_id + "&app_key=" + _app_key
@@ -297,9 +297,9 @@ def search(search_string=None, offset=0, clear_search=False):
             listing.append((search_url, search_list_item, True))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     else:
-        result = get_json(
-            "https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order=publication.endtime:desc"
-            "&availability=ondemand&app_id={2}&app_key={3}".format(search_string, offset, _app_id, _app_key))
+        result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
+                          "&availability=ondemand&app_id={3}&app_key={4}"
+                          .format(search_string, offset, get_sort_method(), _app_id, _app_key))
         search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
         list_videos(result['data'], search_url)
     xbmcplugin.endOfDirectory(_handle)
@@ -371,6 +371,37 @@ def get_language_codes():
 
 def get_translation(id):
     return _addon.getLocalizedString(id)
+
+
+def get_sort_method():
+    sort_method = int(_addon.getSetting("sortMethod"))
+    asc_or_desc = int(_addon.getSetting("ascOrDesc"))
+
+    if asc_or_desc == 0:
+        asc_or_desc = 'asc'
+    elif asc_or_desc == 1:
+        asc_or_desc = 'desc'
+    else:
+        raise ValueError('Unknown sort type {}'.format(asc_or_desc))
+
+    if sort_method == 0:
+        sort_method = 'playcount.6h'
+    elif sort_method == 1:
+        sort_method = 'playcount.24h'
+    elif sort_method == 2:
+        sort_method = 'playcount.week'
+    elif sort_method == 3:
+        sort_method = 'playcount.month'
+    elif sort_method == 4:
+        sort_method = 'publication.starttime'
+    elif sort_method == 5:
+        sort_method = 'publication.endtime'
+    elif sort_method == 6:
+        sort_method = 'updated'
+    else:
+        raise ValueError('Unknown sort method {}'.format(sort_method))
+
+    return '{}:{}'.format(sort_method, asc_or_desc)
 
 
 def router(param_string):

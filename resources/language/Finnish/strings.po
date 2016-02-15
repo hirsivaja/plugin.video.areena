@@ -54,3 +54,47 @@ msgstr "Uusi haku"
 msgctxt "#32010"
 msgid "Clear searches"
 msgstr "Tyhjennä haut"
+
+msgctxt "#32011"
+msgid "Sort type"
+msgstr "Lajittelutyyppi"
+
+msgctxt "#32012"
+msgid "Ascending"
+msgstr "Nouseva"
+
+msgctxt "#32013"
+msgid "Descending"
+msgstr "Laskeva"
+
+msgctxt "#32014"
+msgid "Default sort method"
+msgstr "Oletuslajittelumetodi"
+
+msgctxt "#32015"
+msgid "Most popular: 6h"
+msgstr "Suosituimmat: 6h"
+
+msgctxt "#32016"
+msgid "Most popular: 24h"
+msgstr "Suosituimmat: 24h"
+
+msgctxt "#32017"
+msgid "Most popular: week"
+msgstr "Suosituimmat: viikko"
+
+msgctxt "#32018"
+msgid "Most popular: month"
+msgstr "Suosituimmat: kuukausi"
+
+msgctxt "#32019"
+msgid "Time when viewing starts"
+msgstr "Julkaisun aloitusaika"
+
+msgctxt "#32020"
+msgid "Time when viewing ends"
+msgstr "Julkaisun lopetusaika"
+
+msgctxt "#32021"
+msgid "Time when updated"
+msgstr "Julkaisun päivitysaika"

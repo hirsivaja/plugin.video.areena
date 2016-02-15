@@ -54,3 +54,47 @@ msgstr "Ny sök"
 msgctxt "#32010"
 msgid "Clear searches"
 msgstr "Klara sökande"
+
+msgctxt "#32011"
+msgid "Sort type"
+msgstr "Sorteringssätt "
+
+msgctxt "#32012"
+msgid "Ascending"
+msgstr "Uppgående"
+
+msgctxt "#32013"
+msgid "Descending"
+msgstr "Nergående"
+
+msgctxt "#32014"
+msgid "Default sort method"
+msgstr "Standardsorteringssätt"
+
+msgctxt "#32015"
+msgid "Most popular: 6h"
+msgstr "Mest populär: 6h"
+
+msgctxt "#32016"
+msgid "Most popular: 24h"
+msgstr "Mest populär: 24h"
+
+msgctxt "#32017"
+msgid "Most popular: week"
+msgstr "Mest populär: veckan"
+
+msgctxt "#32018"
+msgid "Most popular: month"
+msgstr "Mest populär: månaden"
+
+msgctxt "#32019"
+msgid "Time when viewing starts"
+msgstr "När programmet tillgänglig"
+
+msgctxt "#32020"
+msgid "Time when viewing ends"
+msgstr "När programmet lämnas"
+
+msgctxt "#32021"
+msgid "Time when updated"
+msgstr "När programmet uppdaterad"
