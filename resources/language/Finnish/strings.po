@@ -48,8 +48,8 @@ msgid "Next page"
 msgstr "Seuraava sivu"
 
 msgctxt "#32009"
-msgid "New search"
-msgstr "Uusi haku"
+msgid "New free search"
+msgstr "Uusi vapaa haku"
 
 msgctxt "#32010"
 msgid "Clear searches"
@@ -98,3 +98,15 @@ msgstr "Julkaisun lopetusaika"
 msgctxt "#32021"
 msgid "Time when updated"
 msgstr "Julkaisun päivitysaika"
+
+msgctxt "#32022"
+msgid "New series search"
+msgstr "Uusi sarjahaku"
+
+msgctxt "#32023"
+msgid "Free search: "
+msgstr "Vapaa haku: "
+
+msgctxt "#32024"
+msgid "Series search: "
+msgstr "Sarjahaku: "

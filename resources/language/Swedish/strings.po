@@ -48,8 +48,8 @@ msgid "Next page"
 msgstr "Nästa sidan"
 
 msgctxt "#32009"
-msgid "New search"
-msgstr "Ny sök"
+msgid "New free search"
+msgstr "Ny fri sök"
 
 msgctxt "#32010"
 msgid "Clear searches"
@@ -98,3 +98,15 @@ msgstr "När programmet lämnas"
 msgctxt "#32021"
 msgid "Time when updated"
 msgstr "När programmet uppdaterad"
+
+msgctxt "#32022"
+msgid "New series search"
+msgstr "Ny serie sök"
+
+msgctxt "#32023"
+msgid "Free search: "
+msgstr "Fri sök: "
+
+msgctxt "#32024"
+msgid "Series search: "
+msgstr "Serie sök: "

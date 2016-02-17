@@ -48,7 +48,7 @@ msgid "Next page"
 msgstr ""
 
 msgctxt "#32009"
-msgid "New search"
+msgid "New free search"
 msgstr ""
 
 msgctxt "#32010"
@@ -97,4 +97,16 @@ msgstr ""
 
 msgctxt "#32021"
 msgid "Time when updated"
+msgstr ""
+
+msgctxt "#32022"
+msgid "New series search"
+msgstr ""
+
+msgctxt "#32023"
+msgid "Free search: "
+msgstr ""
+
+msgctxt "#32024"
+msgid "Series search: "
 msgstr ""

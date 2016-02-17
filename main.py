@@ -135,6 +135,14 @@ def list_categories():
     xbmcplugin.endOfDirectory(_handle)
 
 
+def list_series(series_id, offset):
+    result = get_json("https://external.api.yle.fi/v1/programs/items.json?series={0}&offset={1}&order={2}"
+                      "&availability=ondemand&app_id={3}&app_key={4}"
+                      .format(series_id, offset, get_sort_method(), _app_id, _app_key))
+    series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
+    list_videos(result['data'], series_url)
+
+
 def list_videos(videos, offset_url):
     """
     Create the list of playable videos in the Kodi interface.
@@ -246,6 +254,7 @@ def play_video(path):
     :return: None
     """
     url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + _app_id + "&app_key=" + _app_key
+    report_url = None
     data = get_json(url)
     subtitle_list = []
     for publication in data['data']['publicationEvent']:
@@ -256,6 +265,8 @@ def play_video(path):
                   "&media_id=" + publication['media']['id'] + \
                   "&protocol=HLS&app_id=" + _app_id + \
                   "&app_key=" + _app_key
+            report_url = "https://external.api.yle.fi/v1/tracking/streamstart?program_id={0}&media_id={1}&app_id={2}&" \
+                         "app_key={3}".format(path, publication['media']['id'], _app_id, _app_key)
             playout_data = get_json(url)
             encrypted_url = playout_data['data'][0]['url']
             subtitles = playout_data['data'][0]['subtitles']
@@ -267,6 +278,10 @@ def play_video(path):
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
     play_item.setSubtitles(subtitle_list)
+    # Report usage to YLE
+    response = urllib.urlopen(report_url)
+    if response.getcode() != 200:
+        log("Could not report usage. Got code {0}".format(response.getcode()), xbmc.LOGWARNING)
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
 
@@ -285,35 +300,74 @@ def search(search_string=None, offset=0, clear_search=False):
         log("Show search UI")
         listing = []
         new_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32009) + ']')
-        new_search_url = '{0}?action=new_search'.format(_url)
+        new_search_url = '{0}?action=new_search&type=free'.format(_url)
         listing.append((new_search_url, new_search_list_item, True))
+        new_series_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32022) + ']')
+        new_series_search_url = '{0}?action=new_search&type=series'.format(_url)
+        listing.append((new_series_search_url, new_series_search_list_item, True))
         clear_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32010) + ']')
         clear_search_url = '{0}?action=search&clear_search=1'.format(_url)
         listing.append((clear_search_url, clear_search_list_item, True))
         searches = _addon.getSetting("searches").splitlines()
         for search_item in searches:
-            search_list_item = xbmcgui.ListItem(label=search_item)
+            search_type, query = search_item.split(':', 1)
+            if search_type == 'free':
+                search_list_item = xbmcgui.ListItem(label="[COLOR green]" + get_translation(32023) + "[/COLOR]" + query)
+            else:
+                search_list_item = xbmcgui.ListItem(label="[COLOR red]" + get_translation(32024) + "[/COLOR]" + query)
             search_url = '{0}?action=search&search_string={1}'.format(_url, search_item)
             listing.append((search_url, search_list_item, True))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     else:
-        result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
-                          "&availability=ondemand&app_id={3}&app_key={4}"
-                          .format(search_string, offset, get_sort_method(), _app_id, _app_key))
-        search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
-        list_videos(result['data'], search_url)
+        search_type, query = search_string.split(':', 1)
+        if search_type == 'free':
+            result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
+                              "&availability=ondemand&app_id={3}&app_key={4}"
+                              .format(query, offset, get_sort_method(), _app_id, _app_key))
+            search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
+            list_videos(result['data'], search_url)
+        else:
+            result = {'data': []}
+            while True:
+                data = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
+                                "&availability=ondemand&limit=100&app_id={3}&app_key={4}"
+                                .format(query, offset, get_sort_method(), _app_id, _app_key))
+                for item in data['data']:
+                    result['data'].append(item)
+                offset += 100
+                if len(data['data']) < 100:
+                    break
+            log(result)
+            list_of_series = {}
+            listing = []
+            for item in result['data']:
+                if 'partOfSeries' in item:
+                    if 'title' in item['partOfSeries']:
+                        for language_code in get_language_codes():
+                            if language_code in item['partOfSeries']['title']:
+                                title = item['partOfSeries']['title'][language_code]
+                                if query.lower() in title.lower():
+                                    list_of_series[item['partOfSeries']['id']] = \
+                                        item['partOfSeries']['title'][language_code]
+                                break
+            for key in list_of_series:
+                series_list_item = xbmcgui.ListItem(label=list_of_series[key])
+                series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, key, 0)
+                listing.append((series_url, series_list_item, True))
+            xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     xbmcplugin.endOfDirectory(_handle)
 
 
-def new_search():
+def new_search(search_type):
     """
     Creates a new search. Saves it to add-on settings
+    :param search_type 'free' for free search, 'series' for searching series names
     :return: None
     """
     keyboard = xbmc.Keyboard()
     keyboard.doModal()
     if keyboard.isConfirmed() and keyboard.getText() != '':
-        search_text = keyboard.getText()
+        search_text = "{}:{}".format(search_type, keyboard.getText())
         log(search_text)
         searches = _addon.getSetting("searches").splitlines()
         searches.insert(0, search_text)
@@ -369,8 +423,8 @@ def get_language_codes():
     raise ValueError('Unknown language {}'.format(language))
 
 
-def get_translation(id):
-    return _addon.getLocalizedString(id)
+def get_translation(translation_id):
+    return _addon.getLocalizedString(translation_id)
 
 
 def get_sort_method():
@@ -439,8 +493,12 @@ def router(param_string):
             # Show search window
             search(search_string=search_string, offset=offset, clear_search=clear_search)
         elif params['action'] == 'new_search':
+            search_type = params['type']
             # Show search window
-            new_search()
+            new_search(search_type)
+        elif params['action'] == 'series':
+            series_id = params['series_id']
+            list_series(series_id, offset)
         else:
             log("Unknown action: {0}".format(params['action']), xbmc.LOGERROR)
     else:
