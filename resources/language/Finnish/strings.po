@@ -130,4 +130,3 @@ msgstr "Poista suosikeista
 msgctxt "#32029"
 msgid "Remove search item"
 msgstr "Poista haku"
-"
