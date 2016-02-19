@@ -94,6 +94,9 @@ def list_categories():
     search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
     search_url = '{0}?action=search'.format(_url)
     listing.append((search_url, search_list_item, True))
+    favourites_list_item = xbmcgui.ListItem(label='[' + get_translation(32025) + ']')
+    favourites_url = '{0}?action=favourites'.format(_url)
+    listing.append((favourites_url, favourites_list_item, True))
     # Iterate through categories
     for category in categories:
         if 'broader' not in category:
@@ -157,6 +160,7 @@ def list_videos(videos, offset_url):
     for video in videos:
         info_labels = ()
         video_stream_info = {}
+        context_menu = []
         list_item = None
         # Create a list item with a text label and a thumbnail image.
         for language_code in get_language_codes():
@@ -206,6 +210,19 @@ def list_videos(videos, offset_url):
                 if language_code in video['itemTitle']:
                     list_item.setLabel(list_item.getLabel() + ' - ' + video['itemTitle'][language_code].encode('utf-8'))
                     break
+        if 'partOfSeries' in video:
+            if 'id' in video['partOfSeries']:
+                series_title = 'SERIES TITLE NOT FOUND'
+                if 'title' in video['partOfSeries']:
+                    for language_code in get_language_codes():
+                        if language_code in video['partOfSeries']['title']:
+                            series_title = video['partOfSeries']['title'][language_code]
+                            break
+                add_series_favourite_context_menu_item = \
+                    (get_translation(32027),
+                     'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
+                     .format(_url, video['partOfSeries']['id'], series_title.encode('utf-8')))
+                context_menu.append(add_series_favourite_context_menu_item)
         found_current_publication = False
         for publication in video['publicationEvent']:
             if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
@@ -219,11 +236,16 @@ def list_videos(videos, offset_url):
         if not found_current_publication:
             log("No publication with 'currently': {}".format(video['title']), xbmc.LOGWARNING)
             continue
+        add_favourite_context_menu_item = (get_translation(32026),
+                                           'RunPlugin({0}?action=add_favourite&type=episode&id={1}&label={2})'.
+                                           format(_url, video['id'], list_item.getLabel()))
+        context_menu.append(add_favourite_context_menu_item)
         # Set 'IsPlayable' property to 'true'.
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
         list_item.setInfo(type='Video', infoLabels=info_labels)
         list_item.addStreamInfo('video', video_stream_info)
+        list_item.addContextMenuItems(context_menu)
         # Create a URL for the plugin recursive callback.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/vids/crab.mp4
         url = '{0}?action=play&video={1}'.format(_url, video['id'])
@@ -286,12 +308,13 @@ def play_video(path):
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
 
 
-def search(search_string=None, offset=0, clear_search=False):
+def search(search_string=None, offset=0, clear_search=False, remove_string=None):
     """
     Manage the search view.
     :param search_string: string to search
     :param offset: offset of the results
     :param clear_search: if true, will clear earlier searches
+    :param remove_string: if not 'None' will remove the given string
     :return: None
     """
     if clear_search:
@@ -309,6 +332,10 @@ def search(search_string=None, offset=0, clear_search=False):
         clear_search_url = '{0}?action=search&clear_search=1'.format(_url)
         listing.append((clear_search_url, clear_search_list_item, True))
         searches = _addon.getSetting("searches").splitlines()
+        if remove_string is not None:
+            if remove_string in searches:
+                searches.remove(remove_string)
+                _addon.setSetting("searches", "\n".join(searches))
         for search_item in searches:
             search_type, query = search_item.split(':', 1)
             if search_type == 'free':
@@ -316,9 +343,24 @@ def search(search_string=None, offset=0, clear_search=False):
             else:
                 search_list_item = xbmcgui.ListItem(label="[COLOR red]" + get_translation(32024) + "[/COLOR]" + query)
             search_url = '{0}?action=search&search_string={1}'.format(_url, search_item)
+            context_menu = []
+            remove_context_menu_item = \
+                (get_translation(32029), 'ActivateWindow(Videos,{0}?action=search&remove_string={1})'.
+                 format(_url, search_item))
+            context_menu.append(remove_context_menu_item)
+            search_list_item.addContextMenuItems(context_menu)
             listing.append((search_url, search_list_item, True))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     else:
+        log(search_string)
+        searches = _addon.getSetting("searches").splitlines()
+        if searches.count(search_string) > 0:
+            searches.remove(search_string)
+        searches.insert(0, search_string)
+        if len(searches) > 20:
+            searches.pop()
+        _addon.setSetting("searches", "\n".join(searches))
+
         search_type, query = search_string.split(':', 1)
         if search_type == 'free':
             result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
@@ -368,14 +410,49 @@ def new_search(search_type):
     keyboard.doModal()
     if keyboard.isConfirmed() and keyboard.getText() != '':
         search_text = "{}:{}".format(search_type, keyboard.getText())
-        log(search_text)
-        searches = _addon.getSetting("searches").splitlines()
-        searches.insert(0, search_text)
-        if len(searches) > 20:
-            searches.pop()
-        _addon.setSetting("searches", "\n".join(searches))
         search(search_text, 0)
     xbmcplugin.endOfDirectory(_handle)
+
+
+def favourites():
+    listing = []
+    items = _addon.getSetting("favourites").splitlines()
+    for favourite in items:
+        fav_type, fav_id, fav_label = favourite.split(':', 2)
+        favourite_list_item = xbmcgui.ListItem(label=fav_label)
+        if fav_type == 'series':
+            favourite_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, fav_id, 0)
+            is_folder = True
+        elif fav_type == 'episode':
+            favourite_url = '{0}?action=play&video={1}'.format(_url, fav_id)
+            favourite_list_item.setProperty('IsPlayable', 'true')
+            is_folder = False
+        else:
+            raise ValueError("Unknown favourites type '{0}'".format(fav_type))
+        context_menu = []
+        remove_favourite_context_menu_item = \
+            (get_translation(32028), 'ActivateWindow(Videos,{0}?action=remove_favourite&type={1}&id={2}&label={3})'.
+             format(_url, fav_type, fav_id, fav_label))
+        context_menu.append(remove_favourite_context_menu_item)
+        favourite_list_item.addContextMenuItems(context_menu)
+        listing.append((favourite_url, favourite_list_item, is_folder))
+    xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def add_favourite(fav_type, fav_id, fav_label):
+    items = _addon.getSetting("favourites").splitlines()
+    items.insert(0, '{0}:{1}:{2}'.format(fav_type, fav_id, fav_label))
+    _addon.setSetting("favourites", "\n".join(items))
+
+
+def remove_favourite(fav_type, fav_id, fav_label):
+    items = _addon.getSetting("favourites").splitlines()
+    favourite = '{0}:{1}:{2}'.format(fav_type, fav_id, fav_label)
+    if favourite in items:
+        items.remove(favourite)
+    _addon.setSetting("favourites", "\n".join(items))
+    favourites()
 
 
 def decrypt_url(encrypted_url):
@@ -490,12 +567,27 @@ def router(param_string):
             clear_search = False
             if 'clear_search' in params:
                 clear_search = bool(params['clear_search'])
+            remove_string = None
+            if 'remove_string' in params:
+                remove_string = str(params['remove_string'])
             # Show search window
-            search(search_string=search_string, offset=offset, clear_search=clear_search)
+            search(search_string=search_string, offset=offset, clear_search=clear_search, remove_string=remove_string)
+        elif params['action'] == 'favourites':
+            favourites()
         elif params['action'] == 'new_search':
             search_type = params['type']
             # Show search window
             new_search(search_type)
+        elif params['action'] == 'add_favourite':
+            favourite_type = params['type']
+            favourite_id = params['id']
+            favourite_label = params['label']
+            add_favourite(favourite_type, favourite_id, favourite_label)
+        elif params['action'] == 'remove_favourite':
+            favourite_type = params['type']
+            favourite_id = params['id']
+            favourite_label = params['label']
+            remove_favourite(favourite_type, favourite_id, favourite_label)
         elif params['action'] == 'series':
             series_id = params['series_id']
             list_series(series_id, offset)

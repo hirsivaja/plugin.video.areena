@@ -110,3 +110,23 @@ msgstr ""
 msgctxt "#32024"
 msgid "Series search: "
 msgstr ""
+
+msgctxt "#32025"
+msgid "Favourites"
+msgstr ""
+
+msgctxt "#32026"
+msgid "Add item to favourites"
+msgstr ""
+
+msgctxt "#32027"
+msgid "Add series to favourites"
+msgstr ""
+
+msgctxt "#32028"
+msgid "Remove from favourites"
+msgstr ""
+
+msgctxt "#32029"
+msgid "Remove search item"
+msgstr ""

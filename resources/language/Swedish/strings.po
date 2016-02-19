@@ -110,3 +110,24 @@ msgstr "Fri sök: "
 msgctxt "#32024"
 msgid "Series search: "
 msgstr "Serie sök: "
+
+msgctxt "#32025"
+msgid "Favourites"
+msgstr "Favoriterna"
+
+msgctxt "#32026"
+msgid "Add item to favourites"
+msgstr "Tillsätta till favoriterna"
+
+msgctxt "#32027"
+msgid "Add series to favourites"
+msgstr "Tillsätta serie till favoriterna"
+
+msgctxt "#32028"
+msgid "Remove from favourites"
+msgstr "Ta bort från favoriterna"
+
+msgctxt "#32029"
+msgid "Remove search item"
+msgstr "Ta bort sök"
+"

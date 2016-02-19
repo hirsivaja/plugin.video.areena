@@ -110,3 +110,24 @@ msgstr "Vapaa haku: "
 msgctxt "#32024"
 msgid "Series search: "
 msgstr "Sarjahaku: "
+
+msgctxt "#32025"
+msgid "Favourites"
+msgstr "Suosikit"
+
+msgctxt "#32026"
+msgid "Add item to favourites"
+msgstr "Lisää ohjelma suosikkeihin"
+
+msgctxt "#32027"
+msgid "Add series to favourites"
+msgstr "Lisää sarja suosikkeihin"
+
+msgctxt "#32028"
+msgid "Remove from favourites"
+msgstr "Poista suosikeista
+
+msgctxt "#32029"
+msgid "Remove search item"
+msgstr "Poista haku"
+"
