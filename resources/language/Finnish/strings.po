@@ -134,3 +134,11 @@ msgstr "Poista haku"
 msgctxt "#32030"
 msgid "Are you in Finland?"
 msgstr "Oletko Suomessa?"
+
+msgctxt "#32031"
+msgid "TV programmes"
+msgstr "TV-ohjelmat"
+
+msgctxt "#32032"
+msgid "Radio programmes"
+msgstr "Radio-ohjelmat"

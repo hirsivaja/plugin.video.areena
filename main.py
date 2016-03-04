@@ -31,7 +31,7 @@ _addonid = 'plugin.video.areena'
 _addon = xbmcaddon.Addon(id=_addonid)
 
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
-_unplayableCategories = ["5-162", "5-164"]
+_unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
 
 
 def log(txt, log_level=xbmc.LOGDEBUG):
@@ -50,29 +50,23 @@ def log(txt, log_level=xbmc.LOGDEBUG):
 
 def get_categories():
     """
-    Get the list of video categories.
-    Here you can insert some parsing code that retrieves
-    the list of video categories (e.g. 'Movies', 'TV-shows', 'Documentaries' etc.)
-    from some site or server.
+    Get a list of all the categories.
     :return: list
     """
     url = "https://external.api.yle.fi/v1/programs/categories.json?app_id=" + _app_id + "&app_key=" + _app_key
     return get_json(url)['data']
 
 
-def get_videos(category, offset):
+def get_streams(category, offset):
     """
-    Get the list of videofiles/streams.
-    Here you can insert some parsing code that retrieves
-    the list of videostreams in a given category from some site or server.
+    Get the list of streams.
     :param category: category id
-    :param offset: offset for videos to retrieve
-    :return: json data of the videos
+    :param offset: offset for streams to retrieve
+    :return: json data of the streams
     """
 
     url = "https://external.api.yle.fi/v1/programs/items.json?" \
           "availability=ondemand" \
-          "&mediaobject=video" \
           "&category=" + category + \
           "&order=" + get_sort_method() + \
           "&contentprotection=22-0,22-1" \
@@ -82,53 +76,13 @@ def get_videos(category, offset):
     return get_json(url)['data']
 
 
-def list_categories():
+def list_categories(base_category):
     """
-    Create the list of video categories in the Kodi interface.
+    Create the list of the categories in the Kodi interface.
+    :param base_category: the parent category to require from all categories
     :return: None
     """
-    # Get video categories
-    categories = get_categories()
-    # Create a list for our items.
-    listing = []
-    # Add static "categories"
-    search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
-    search_url = '{0}?action=search'.format(_url)
-    listing.append((search_url, search_list_item, True))
-    favourites_list_item = xbmcgui.ListItem(label='[' + get_translation(32025) + ']')
-    favourites_url = '{0}?action=favourites'.format(_url)
-    listing.append((favourites_url, favourites_list_item, True))
-    # Iterate through categories
-    for category in categories:
-        if 'broader' not in category:
-            continue
-        if 'id' not in category['broader']:
-            continue
-        if category['id'] in _unplayableCategories:
-            continue
-
-        if category['broader']['id'] == '5-130':
-            # Create a list item with a text label and a thumbnail image.
-            for language_code in get_language_codes():
-                if language_code in category['title']:
-                    category_title = category['title'][language_code]
-                    break
-            list_item = xbmcgui.ListItem(label=category_title)
-            # Set a fanart image for the list item.
-            # Here we use the same image as the thumbnail for simplicity's sake.
-            # list_item.setProperty('fanart_image', VIDEOS[category][0]['thumb'])
-            # Set additional info for the list item.
-            # Here we use a category name for both properties for for simplicity's sake.
-            # setInfo allows to set various information for an item.
-            # For available properties see the following link:
-            # http://mirrors.xbmc.org/docs/python-docs/15.x-isengard/xbmcgui.html#ListItem-setInfo
-            list_item.setInfo('video', {'title': category_title, 'genre': category['type']})
-            # Create a URL for the plugin recursive callback.
-            url = '{0}?action=listing&category={1}'.format(_url, category['id'])
-            # is_folder = True means that this item opens a sub-list of lower level items.
-            is_folder = True
-            # Add our item to the listing as a 3-element tuple.
-            listing.append((url, list_item, is_folder))
+    listing = list_sub_categories(base_category)
     # Add our listing to Kodi.
     # Large lists and/or slower systems benefit from adding all items at once via addDirectoryItems
     # instead of adding one by ove via addDirectoryItem.
@@ -139,93 +93,111 @@ def list_categories():
     xbmcplugin.endOfDirectory(_handle)
 
 
+def list_sub_categories(base_category):
+    # Get the categories
+    categories = get_categories()
+    # Create a list for our items.
+    listing = []
+    # Iterate through categories
+    for category in categories:
+        if 'broader' not in category:
+            continue
+        if 'id' not in category['broader']:
+            continue
+        if category['id'] in _unplayableCategories:
+            continue
+
+        if category['broader']['id'] == base_category:
+            # Create a list item with a text label and a thumbnail image.
+            for language_code in get_language_codes():
+                if language_code in category['title']:
+                    category_title = category['title'][language_code]
+                    break
+            list_item = xbmcgui.ListItem(label=category_title)
+            # Set additional info for the list item.
+            list_item.setInfo('video', {'title': category_title, 'genre': category['type']})
+            # Create a URL for the plugin recursive callback.
+            url = '{0}?action=listing&category={1}'.format(_url, category['id'])
+            # is_folder = True means that this item opens a sub-list of lower level items.
+            is_folder = True
+            # Add our item to the listing as a 3-element tuple.
+            listing.append((url, list_item, is_folder))
+    return listing
+
+
 def list_series(series_id, offset):
     result = get_json("https://external.api.yle.fi/v1/programs/items.json?series={0}&offset={1}&order={2}"
                       "&availability=ondemand{3}&app_id={4}&app_key={5}"
                       .format(series_id, offset, get_sort_method(), get_region(), _app_id, _app_key))
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
-    list_videos(result['data'], series_url)
+    list_streams([], result['data'], series_url)
 
 
-def list_videos(videos, offset_url):
+def list_streams(listing, streams, offset_url):
     """
-    Create the list of playable videos in the Kodi interface.
-    :param videos: json of videos to list
-    :param offset_url: url that opens next page of videos
+    Create the list of playable streams in the Kodi interface.
+    :param listing: list for the streams. Can include some fixed elements
+    :param streams: json of streams to list
+    :param offset_url: url that opens next page of streams
     :return: None
     """
-    # Create a list for our items.
-    listing = []
-    # list.append(('{0}', '...', True))
-    # Iterate through videos.
-    for video in videos:
+    # Iterate through the streams.
+    for stream in streams:
         info_labels = ()
-        video_stream_info = {}
+        stream_info = {}
         context_menu = []
         list_item = None
         # Create a list item with a text label and a thumbnail image.
         for language_code in get_language_codes():
-            if language_code in video['title']:
-                list_item = xbmcgui.ListItem(label=str(video['title'][language_code].encode('utf-8')) + ' ')
+            if language_code in stream['title']:
+                list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
                 break
         if list_item is None:
-            log('no title for video: {}'.format(video['title']), xbmc.LOGWARNING)
+            log('no title for stream: {}'.format(stream['title']), xbmc.LOGWARNING)
             break
-        # Set a fanart image for the list item.
-        # Here we use the same image as the thumbnail for simplicity's sake.
-        # list_item.setProperty('fanart_image', video['thumb'])
-        # Set additional info for the list item.
-        # if 'fi' in video['description']:
-        #  list_item.setInfo('video', {'title': video['description']['fi']})
-        # Set additional graphics (banner, poster, landscape etc.) for the list item.
-        # Again, here we use the same image as the thumbnail for simplicity's sake.
-
-        if 'available' in video['image']:
-            # log("Available field exists")
-            if video['image']['available']:
+        if 'available' in stream['image']:
+            if stream['image']['available']:
                 image_url = 'http://images.cdn.yle.fi/image/upload/w_240,h_240,c_fit/{0}.png'.format(
-                    video['image']['id'])
-                # log("Image url is " + imageUrl)
-                # list_item.setArt({'landscape': imageUrl})
+                    stream['image']['id'])
                 list_item.setThumbnailImage(image_url)
         for language_code in get_language_codes():
-            if language_code in video['description']:
-                info_labels = info_labels + ('plot', video['description'][language_code].encode('utf-8'))
+            if language_code in stream['description']:
+                info_labels = info_labels + ('plot', stream['description'][language_code].encode('utf-8'))
                 break
-        if 'duration' in video:
-            duration = get_timedelta_from_duration(video['duration'])
+        if 'duration' in stream:
+            duration = get_timedelta_from_duration(stream['duration'])
             if duration is not None:
                 info_labels = info_labels + ('duration', duration.total_seconds())
-                video_stream_info = {'duration': duration.total_seconds()}
-        if 'partOfSeason' in video:
-            if 'seasonNumber' in video['partOfSeason']:
-                season_number = video['partOfSeason']['seasonNumber']
+                stream_info = {'duration': duration.total_seconds()}
+        if 'partOfSeason' in stream:
+            if 'seasonNumber' in stream['partOfSeason']:
+                season_number = stream['partOfSeason']['seasonNumber']
                 info_labels = info_labels + ('season', season_number)
                 list_item.setLabel(list_item.getLabel() + '[COLOR blue]S' + str(season_number) + '[/COLOR]')
-        if 'episodeNumber' in video:
-            episode_number = video['episodeNumber']
+        if 'episodeNumber' in stream:
+            episode_number = stream['episodeNumber']
             info_labels = info_labels + ('episode', episode_number)
             list_item.setLabel(list_item.getLabel() + '[COLOR blue]E' + str(episode_number) + '[/COLOR]')
-        if 'itemTitle' in video:
+        if 'itemTitle' in stream:
             for language_code in get_language_codes():
-                if language_code in video['itemTitle']:
-                    list_item.setLabel(list_item.getLabel() + ' - ' + video['itemTitle'][language_code].encode('utf-8'))
+                if language_code in stream['itemTitle']:
+                    list_item.setLabel(list_item.getLabel() + ' - ' + stream['itemTitle'][language_code].encode('utf-8'))
                     break
-        if 'partOfSeries' in video:
-            if 'id' in video['partOfSeries']:
+        if 'partOfSeries' in stream:
+            if 'id' in stream['partOfSeries']:
                 series_title = 'SERIES TITLE NOT FOUND'
-                if 'title' in video['partOfSeries']:
+                if 'title' in stream['partOfSeries']:
                     for language_code in get_language_codes():
-                        if language_code in video['partOfSeries']['title']:
-                            series_title = video['partOfSeries']['title'][language_code]
+                        if language_code in stream['partOfSeries']['title']:
+                            series_title = stream['partOfSeries']['title'][language_code]
                             break
                 add_series_favourite_context_menu_item = \
                     (get_translation(32027),
                      'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
-                     .format(_url, video['partOfSeries']['id'], series_title.encode('utf-8')))
+                     .format(_url, stream['partOfSeries']['id'], series_title.encode('utf-8')))
                 context_menu.append(add_series_favourite_context_menu_item)
         found_current_publication = False
-        for publication in video['publicationEvent']:
+        for publication in stream['publicationEvent']:
             if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
                 if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
                     # We need to skip publications that can only be seen in Finland
@@ -238,21 +210,21 @@ def list_videos(videos, offset_url):
                     list_item.setLabel("[COLOR red]" + str(ttl) + "d[/COLOR] " + list_item.getLabel())
                 break
         if not found_current_publication:
-            log("No publication with 'currently': {}".format(video['title']), xbmc.LOGWARNING)
+            log("No publication with 'currently': {}".format(stream['title']), xbmc.LOGWARNING)
             continue
         add_favourite_context_menu_item = (get_translation(32026),
                                            'RunPlugin({0}?action=add_favourite&type=episode&id={1}&label={2})'.
-                                           format(_url, video['id'], list_item.getLabel()))
+                                           format(_url, stream['id'], list_item.getLabel()))
         context_menu.append(add_favourite_context_menu_item)
         # Set 'IsPlayable' property to 'true'.
         # This is mandatory for playable items!
         list_item.setProperty('IsPlayable', 'true')
         list_item.setInfo(type='Video', infoLabels=info_labels)
-        list_item.addStreamInfo('video', video_stream_info)
+        list_item.addStreamInfo('video', stream_info)
         list_item.addContextMenuItems(context_menu)
         # Create a URL for the plugin recursive callback.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/vids/crab.mp4
-        url = '{0}?action=play&video={1}'.format(_url, video['id'])
+        url = '{0}?action=play&stream={1}'.format(_url, stream['id'])
         # Add the list item to a virtual Kodi folder.
         # is_folder = False means that this item won't open any sub-list.
         is_folder = False
@@ -273,10 +245,10 @@ def list_videos(videos, offset_url):
     xbmcplugin.setContent(_handle, 'movies')
 
 
-def play_video(path):
+def play_stream(path):
     """
-    Play a video by the provided path.
-    :param path: video id
+    Play a stream by the provided path.
+    :param path: stream id
     :return: None
     """
     url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + _app_id + "&app_key=" + _app_key
@@ -286,10 +258,14 @@ def play_video(path):
     for publication in data['data']['publicationEvent']:
         if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
             log("Found correct publication, media id: " + publication['media']['id'])
+            protocol = 'HLS'
+            if publication['media']['type'] == 'AudioObject':
+                protocol = 'PMD'
             url = "https://external.api.yle.fi/v1/media/playouts.json?" \
                   "program_id=" + path + \
                   "&media_id=" + publication['media']['id'] + \
-                  "&protocol=HLS&app_id=" + _app_id + \
+                  "&protocol=" + protocol + \
+                  "&app_id=" + _app_id + \
                   "&app_key=" + _app_key
             report_url = "https://external.api.yle.fi/v1/tracking/streamstart?program_id={0}&media_id={1}&app_id={2}&" \
                          "app_key={3}".format(path, publication['media']['id'], _app_id, _app_key)
@@ -371,7 +347,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
                               "&availability=ondemand{3}&app_id={4}&app_key={5}"
                               .format(query, offset, get_sort_method(), get_region(), _app_id, _app_key))
             search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
-            list_videos(result['data'], search_url)
+            list_streams([], result['data'], search_url)
         else:
             result = {'data': []}
             while True:
@@ -428,7 +404,7 @@ def favourites():
             favourite_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, fav_id, 0)
             is_folder = True
         elif fav_type == 'episode':
-            favourite_url = '{0}?action=play&video={1}'.format(_url, fav_id)
+            favourite_url = '{0}?action=play&stream={1}'.format(_url, fav_id)
             favourite_list_item.setProperty('IsPlayable', 'true')
             is_folder = False
         else:
@@ -546,6 +522,28 @@ def get_region():
         return '&region=world'
 
 
+def show_menu():
+    listing = []
+    search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
+    search_url = '{0}?action=search'.format(_url)
+    listing.append((search_url, search_list_item, True))
+    favourites_list_item = xbmcgui.ListItem(label='[' + get_translation(32025) + ']')
+    favourites_url = '{0}?action=favourites'.format(_url)
+    listing.append((favourites_url, favourites_list_item, True))
+    tv_list_item = xbmcgui.ListItem(label='[' + get_translation(32031) + ']')
+    tv_url = '{0}?action=categories&base=5-130'.format(_url)
+    listing.append((tv_url, tv_list_item, True))
+    radio_list_item = xbmcgui.ListItem(label='[' + get_translation(32032) + ']')
+    radio_url = '{0}?action=categories&base=5-200'.format(_url)
+    listing.append((radio_url, radio_list_item, True))
+    # Add our listing to Kodi.
+    xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(_handle)
+
+
 def router(param_string):
     """
     Router function that calls other functions
@@ -564,13 +562,16 @@ def router(param_string):
         if 'offset' in params:
             offset = int(params['offset'])
         if params['action'] == 'listing':
-            # Display the list of videos in a provided category.
-            videos = get_videos(params['category'], offset)
+            # Display the list of streams in a provided category.
+            streams = get_streams(params['category'], offset)
             url = '{0}?action=listing&category={1}&offset={2}'.format(_url, params['category'], (offset + 25))
-            list_videos(videos, url)
+            sub_categories = []
+            if offset == 0:
+                sub_categories = list_sub_categories(params['category'])
+            list_streams(sub_categories, streams, url)
         elif params['action'] == 'play':
-            # Play a video from a provided URL.
-            play_video(params['video'])
+            # Play a stream from a provided URL.
+            play_stream(params['stream'])
         elif params['action'] == 'search':
             search_string = None
             if 'search_string' in params:
@@ -602,12 +603,15 @@ def router(param_string):
         elif params['action'] == 'series':
             series_id = params['series_id']
             list_series(series_id, offset)
+        elif params['action'] == 'categories':
+            base_category = params['base']
+            list_categories(base_category)
         else:
             log("Unknown action: {0}".format(params['action']), xbmc.LOGERROR)
     else:
         # If the plugin is called from Kodi UI without any parameters,
-        # display the list of video categories
-        list_categories()
+        # display the main menu
+        show_menu()
 
 
 if __name__ == '__main__':
