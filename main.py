@@ -77,6 +77,7 @@ def get_videos(category, offset):
           "&order=" + get_sort_method() + \
           "&contentprotection=22-0,22-1" \
           "&offset=" + str(offset) + \
+          get_region() + \
           "&app_id=" + _app_id + "&app_key=" + _app_key
     return get_json(url)['data']
 
@@ -140,8 +141,8 @@ def list_categories():
 
 def list_series(series_id, offset):
     result = get_json("https://external.api.yle.fi/v1/programs/items.json?series={0}&offset={1}&order={2}"
-                      "&availability=ondemand&app_id={3}&app_key={4}"
-                      .format(series_id, offset, get_sort_method(), _app_id, _app_key))
+                      "&availability=ondemand{3}&app_id={4}&app_key={5}"
+                      .format(series_id, offset, get_sort_method(), get_region(), _app_id, _app_key))
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
     list_videos(result['data'], series_url)
 
@@ -226,6 +227,9 @@ def list_videos(videos, offset_url):
         found_current_publication = False
         for publication in video['publicationEvent']:
             if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+                if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
+                    # We need to skip publications that can only be seen in Finland
+                    continue
                 found_current_publication = True
                 if 'endTime' in publication:
                     ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
@@ -364,16 +368,16 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
         search_type, query = search_string.split(':', 1)
         if search_type == 'free':
             result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
-                              "&availability=ondemand&app_id={3}&app_key={4}"
-                              .format(query, offset, get_sort_method(), _app_id, _app_key))
+                              "&availability=ondemand{3}&app_id={4}&app_key={5}"
+                              .format(query, offset, get_sort_method(), get_region(), _app_id, _app_key))
             search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
             list_videos(result['data'], search_url)
         else:
             result = {'data': []}
             while True:
                 data = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
-                                "&availability=ondemand&limit=100&app_id={3}&app_key={4}"
-                                .format(query, offset, get_sort_method(), _app_id, _app_key))
+                                "&availability=ondemand&limit=100{3}&app_id={4}&app_key={5}"
+                                .format(query, offset, get_sort_method(), get_region(), _app_id, _app_key))
                 for item in data['data']:
                     result['data'].append(item)
                 offset += 100
@@ -533,6 +537,13 @@ def get_sort_method():
         raise ValueError('Unknown sort method {}'.format(sort_method))
 
     return '{}:{}'.format(sort_method, asc_or_desc)
+
+
+def get_region():
+    if _addon.getSetting("inFinland") == "true":
+        return ''
+    else:
+        return '&region=world'
 
 
 def router(param_string):

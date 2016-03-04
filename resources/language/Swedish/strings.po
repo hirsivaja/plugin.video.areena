@@ -130,3 +130,7 @@ msgstr "Ta bort från favoriterna"
 msgctxt "#32029"
 msgid "Remove search item"
 msgstr "Ta bort sök"
+
+msgctxt "#32030"
+msgid "Are you in Finland?"
+msgstr "Är du inom Finland?"

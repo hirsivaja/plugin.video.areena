@@ -130,3 +130,7 @@ msgstr ""
 msgctxt "#32029"
 msgid "Remove search item"
 msgstr ""
+
+msgctxt "#32030"
+msgid "Are you in Finland?"
+msgstr ""
