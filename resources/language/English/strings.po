@@ -142,3 +142,35 @@ msgstr ""
 msgctxt "#32032"
 msgid "Radio programmes"
 msgstr ""
+
+msgctxt "#32033"
+msgid "Your app_id"
+msgstr ""
+
+msgctxt "#32034"
+msgid "Your app_key"
+msgstr ""
+
+msgctxt "#32035"
+msgid "Your secret key"
+msgstr ""
+
+msgctxt "#32036"
+msgid "API keys"
+msgstr ""
+
+msgctxt "#32037"
+msgid "Get API keys from https://tunnus.yle.fi/api-avaimet"
+msgstr ""
+
+msgctxt "#32038"
+msgid "Missing API keys. Register free at https://tunnus.yle.fi"
+msgstr ""
+
+msgctxt "#32039"
+msgid "After registering click here to add the keys in the settings menu."
+msgstr ""
+
+msgctxt "#32040"
+msgid "Settings"
+msgstr ""

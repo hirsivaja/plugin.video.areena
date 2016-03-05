@@ -142,3 +142,35 @@ msgstr "TV-ohjelmat"
 msgctxt "#32032"
 msgid "Radio programmes"
 msgstr "Radio-ohjelmat"
+
+msgctxt "#32033"
+msgid "Your app_id"
+msgstr "Sinun app_id"
+
+msgctxt "#32034"
+msgid "Your app_key"
+msgstr "Sinun app_key"
+
+msgctxt "#32035"
+msgid "Your secret key"
+msgstr "Sinun purkuavaimesi (secret_key)"
+
+msgctxt "#32036"
+msgid "API keys"
+msgstr "API-avaimet"
+
+msgctxt "#32037"
+msgid "Get API keys from https://tunnus.yle.fi/api-avaimet"
+msgstr "Hae API-avaimet osoitteesta https://tunnus.yle.fi/api-avaimet"
+
+msgctxt "#32038"
+msgid "Missing API keys. Register free at https://tunnus.yle.fi"
+msgstr "API tunnukset puuttuvat. Rekisteröidy ilmaiseksi osoitteessa https://tunnus.yle.fi"
+
+msgctxt "#32039"
+msgid "After registering click here to add the keys in the settings menu."
+msgstr "Rekisteröimisen jälkeen lisää avaimet painamalla tästä."
+
+msgctxt "#32040"
+msgid "Settings"
+msgstr "Asetukset"

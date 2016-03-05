@@ -16,16 +16,11 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import credentials
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
 # Get the plugin handle as an integer number.
 _handle = int(sys.argv[1])
-
-_app_id = credentials._appId
-_app_key = credentials._appKey
-_secret_key = credentials._secretKey
 
 _addonid = 'plugin.video.areena'
 _addon = xbmcaddon.Addon(id=_addonid)
@@ -53,7 +48,7 @@ def get_categories():
     Get a list of all the categories.
     :return: list
     """
-    url = "https://external.api.yle.fi/v1/programs/categories.json?app_id=" + _app_id + "&app_key=" + _app_key
+    url = "https://external.api.yle.fi/v1/programs/categories.json?app_id=" + get_app_id() + "&app_key=" + get_app_key()
     return get_json(url)['data']
 
 
@@ -72,7 +67,7 @@ def get_streams(category, offset):
           "&contentprotection=22-0,22-1" \
           "&offset=" + str(offset) + \
           get_region() + \
-          "&app_id=" + _app_id + "&app_key=" + _app_key
+          "&app_id=" + get_app_id() + "&app_key=" + get_app_key()
     return get_json(url)['data']
 
 
@@ -128,7 +123,7 @@ def list_sub_categories(base_category):
 def list_series(series_id, offset):
     result = get_json("https://external.api.yle.fi/v1/programs/items.json?series={0}&offset={1}&order={2}"
                       "&availability=ondemand{3}&app_id={4}&app_key={5}"
-                      .format(series_id, offset, get_sort_method(), get_region(), _app_id, _app_key))
+                      .format(series_id, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
     list_streams([], result['data'], series_url)
 
@@ -251,7 +246,8 @@ def play_stream(path):
     :param path: stream id
     :return: None
     """
-    url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + _app_id + "&app_key=" + _app_key
+    url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + get_app_id() + \
+          "&app_key=" + get_app_key()
     report_url = None
     data = get_json(url)
     subtitle_list = []
@@ -265,10 +261,10 @@ def play_stream(path):
                   "program_id=" + path + \
                   "&media_id=" + publication['media']['id'] + \
                   "&protocol=" + protocol + \
-                  "&app_id=" + _app_id + \
-                  "&app_key=" + _app_key
+                  "&app_id=" + get_app_id() + \
+                  "&app_key=" + get_app_key()
             report_url = "https://external.api.yle.fi/v1/tracking/streamstart?program_id={0}&media_id={1}&app_id={2}&" \
-                         "app_key={3}".format(path, publication['media']['id'], _app_id, _app_key)
+                         "app_key={3}".format(path, publication['media']['id'], get_app_id(), get_app_key())
             playout_data = get_json(url)
             encrypted_url = playout_data['data'][0]['url']
             subtitles = playout_data['data'][0]['subtitles']
@@ -345,7 +341,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
         if search_type == 'free':
             result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
                               "&availability=ondemand{3}&app_id={4}&app_key={5}"
-                              .format(query, offset, get_sort_method(), get_region(), _app_id, _app_key))
+                              .format(query, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
             search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
             list_streams([], result['data'], search_url)
         else:
@@ -353,7 +349,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
             while True:
                 data = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
                                 "&availability=ondemand&limit=100{3}&app_id={4}&app_key={5}"
-                                .format(query, offset, get_sort_method(), get_region(), _app_id, _app_key))
+                                .format(query, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
                 for item in data['data']:
                     result['data'].append(item)
                 offset += 100
@@ -438,10 +434,46 @@ def remove_favourite(fav_type, fav_id, fav_label):
 def decrypt_url(encrypted_url):
     enc = base64.b64decode(encrypted_url)
     iv = enc[:16]
-    cipher = AES.new(_secret_key, AES.MODE_CBC, iv)
+    cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
     decrypted_url = cipher.decrypt(enc[16:])
     unpadded_url = decrypted_url[:-ord(decrypted_url[len(decrypted_url)-1:])]
     return unpadded_url
+
+
+def get_app_id():
+    app_id = _addon.getSetting("appID")
+    if app_id == '':
+        try:
+            import credentials
+            app_id = credentials._appId
+        except ImportError:
+            log('Could not find the app_id. Either set it from the setting menu or create credentials.py file.',
+                xbmc.LOGWARNING)
+    return app_id
+
+
+def get_app_key():
+    app_key = _addon.getSetting("appKey")
+    if app_key == '':
+        try:
+            import credentials
+            app_key = credentials._appKey
+        except ImportError:
+            log('Could not find the app_key. Either set it from the setting menu or create credentials.py file.',
+                xbmc.LOGWARNING)
+    return app_key
+
+
+def get_secret_key():
+    secret_key = _addon.getSetting("secretKey")
+    if secret_key == '':
+        try:
+            import credentials
+            secret_key = credentials._secretKey
+        except ImportError:
+            log('Could not find the secret_key. Either set it from the setting menu or create credentials.py file.',
+                xbmc.LOGWARNING)
+    return secret_key
 
 
 def get_json(url):
@@ -523,6 +555,8 @@ def get_region():
 
 
 def show_menu():
+    if get_app_id() == '' or get_app_key() == '' or get_secret_key() == '':
+        return show_credentials_needed_menu()
     listing = []
     search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
     search_url = '{0}?action=search'.format(_url)
@@ -530,12 +564,31 @@ def show_menu():
     favourites_list_item = xbmcgui.ListItem(label='[' + get_translation(32025) + ']')
     favourites_url = '{0}?action=favourites'.format(_url)
     listing.append((favourites_url, favourites_list_item, True))
+    open_settings_list_item = xbmcgui.ListItem(label='[' + get_translation(32040) + ']')
+    open_settings_url = '{0}?action=settings'.format(_url)
+    listing.append((open_settings_url, open_settings_list_item, True))
     tv_list_item = xbmcgui.ListItem(label='[' + get_translation(32031) + ']')
     tv_url = '{0}?action=categories&base=5-130'.format(_url)
     listing.append((tv_url, tv_list_item, True))
     radio_list_item = xbmcgui.ListItem(label='[' + get_translation(32032) + ']')
     radio_url = '{0}?action=categories&base=5-200'.format(_url)
     listing.append((radio_url, radio_list_item, True))
+    # Add our listing to Kodi.
+    xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+    # Finish creating a virtual folder.
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def show_credentials_needed_menu():
+    listing = []
+    missing_credentials_list_item = xbmcgui.ListItem(label=get_translation(32038))
+    missing_credentials_url = '{0}'.format(_url)
+    listing.append((missing_credentials_url, missing_credentials_list_item, True))
+    open_settings_list_item = xbmcgui.ListItem(label=get_translation(32039))
+    open_settings_url = '{0}?action=settings'.format(_url)
+    listing.append((open_settings_url, open_settings_list_item, True))
     # Add our listing to Kodi.
     xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
@@ -606,6 +659,8 @@ def router(param_string):
         elif params['action'] == 'categories':
             base_category = params['base']
             list_categories(base_category)
+        elif params['action'] == 'settings':
+            _addon.openSettings()
         else:
             log("Unknown action: {0}".format(params['action']), xbmc.LOGERROR)
     else:
