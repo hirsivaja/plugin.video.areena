@@ -174,3 +174,11 @@ msgstr ""
 msgctxt "#32040"
 msgid "Settings"
 msgstr ""
+
+msgctxt "#32041"
+msgid "Show clips"
+msgstr ""
+
+msgctxt "#32042"
+msgid "Show extra info about streams"
+msgstr ""

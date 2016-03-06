@@ -2,6 +2,8 @@
 <settings>
     <category label="32001">
         <setting id="inFinland" type="bool" label="32030" default="true" />
+        <setting id="showClips" type="bool" label="32041" default="true" />
+        <setting id="showExtraInfo" type="bool" label="32042" default="false" />
         <setting id="language" type="enum" label="32003" lvalues="32004|32005|32006" default="0" />
         <setting id="sortMethod" type="enum" label="32014" lvalues="32015|32016|32017|32018|32019|32020|32021" default="6" />
         <setting id="ascOrDesc" type="enum" label="32011" lvalues="32012|32013" default="1" />

@@ -63,6 +63,7 @@ def get_streams(category, offset):
     url = "https://external.api.yle.fi/v1/programs/items.json?" \
           "availability=ondemand" \
           "&category=" + category + \
+          get_media_type() + \
           "&order=" + get_sort_method() + \
           "&contentprotection=22-0,22-1" \
           "&offset=" + str(offset) + \
@@ -101,7 +102,6 @@ def list_sub_categories(base_category):
             continue
         if category['id'] in _unplayableCategories:
             continue
-
         if category['broader']['id'] == base_category:
             # Create a list item with a text label and a thumbnail image.
             for language_code in get_language_codes():
@@ -143,6 +143,23 @@ def list_streams(listing, streams, offset_url):
         context_menu = []
         list_item = None
         # Create a list item with a text label and a thumbnail image.
+        if 'subject' in stream:
+            # Check if the stream is included in any of the unplayable categories
+            unplayable = False
+            category_id = ''
+            for subject in stream['subject']:
+                if subject['id'] in _unplayableCategories:
+                    unplayable = True
+                    category_id = subject['id']
+                    break
+                if 'broader' in subject:
+                    if subject['broader']['id'] in _unplayableCategories:
+                        unplayable = True
+                        category_id = subject['broader']['id']
+                        break
+            if unplayable:
+                log('Stream is unplayable. It is in category: {0}'.format(category_id))
+                continue
         for language_code in get_language_codes():
             if language_code in stream['title']:
                 list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
@@ -164,19 +181,24 @@ def list_streams(listing, streams, offset_url):
             if duration is not None:
                 info_labels = info_labels + ('duration', duration.total_seconds())
                 stream_info = {'duration': duration.total_seconds()}
-        if 'partOfSeason' in stream:
-            if 'seasonNumber' in stream['partOfSeason']:
-                season_number = stream['partOfSeason']['seasonNumber']
-                info_labels = info_labels + ('season', season_number)
-                list_item.setLabel(list_item.getLabel() + '[COLOR blue]S' + str(season_number) + '[/COLOR]')
-        if 'episodeNumber' in stream:
-            episode_number = stream['episodeNumber']
-            info_labels = info_labels + ('episode', episode_number)
-            list_item.setLabel(list_item.getLabel() + '[COLOR blue]E' + str(episode_number) + '[/COLOR]')
+        if 'partOfSeason' in stream or 'episodeNumber' in stream:
+            season_string = ''
+            episode_string = ''
+            if 'partOfSeason' in stream:
+                if 'seasonNumber' in stream['partOfSeason']:
+                    season_number = stream['partOfSeason']['seasonNumber']
+                    info_labels = info_labels + ('season', season_number)
+                    season_string = 'S{0}'.format(str(season_number))
+            if 'episodeNumber' in stream:
+                episode_number = stream['episodeNumber']
+                info_labels = info_labels + ('episode', episode_number)
+                episode_string = 'E{0}'.format(str(episode_number))
+            list_item.setLabel('{0} - {1}{2}'.format(list_item.getLabel(), season_string, episode_string))
         if 'itemTitle' in stream:
             for language_code in get_language_codes():
                 if language_code in stream['itemTitle']:
-                    list_item.setLabel(list_item.getLabel() + ' - ' + stream['itemTitle'][language_code].encode('utf-8'))
+                    list_item.setLabel('{0} - {1}'.format(list_item.getLabel(),
+                                                          stream['itemTitle'][language_code].encode('utf-8')))
                     break
         if 'partOfSeries' in stream:
             if 'id' in stream['partOfSeries']:
@@ -198,11 +220,21 @@ def list_streams(listing, streams, offset_url):
                     # We need to skip publications that can only be seen in Finland
                     continue
                 found_current_publication = True
-                if 'endTime' in publication:
-                    ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
-                    now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
-                    ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                    list_item.setLabel("[COLOR red]" + str(ttl) + "d[/COLOR] " + list_item.getLabel())
+                if 'startTime' in publication and 'endTime' in publication:
+                    if _addon.getSetting('showExtraInfo') == 'true':
+                        list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
+                        out_format = '%d-%m-%Y %H:%M:%S'
+                        start_time = time.strptime(publication['startTime'].split('+')[0], _yle_time_format)
+                        start_time = time.strftime(out_format, start_time)
+                        end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
+                        end_time = time.strftime(out_format, end_time)
+                        list_item.setLabel('{0} [COLOR red]{1} - {2}[/COLOR]'.format(list_item.getLabel(), start_time,
+                                                                                     end_time))
+                    else:
+                        ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
+                        now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
+                        ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
+                        list_item.setLabel("[COLOR red]{0}d[/COLOR] {1}".format(str(ttl), list_item.getLabel()))
                 break
         if not found_current_publication:
             log("No publication with 'currently': {}".format(stream['title']), xbmc.LOGWARNING)
@@ -480,6 +512,8 @@ def get_json(url):
     log(url)
     response = urllib.urlopen(url)
     log(response)
+    if response is None or response == '':
+        raise ValueError('Request "{0}" returned an empty response.'.format(url))
     data = json.loads(response.read())
     log(data)
     return data
@@ -552,6 +586,13 @@ def get_region():
         return ''
     else:
         return '&region=world'
+
+
+def get_media_type():
+    if _addon.getSetting("showClips") == "true":
+        return ''
+    else:
+        return '&type=program'
 
 
 def show_menu():

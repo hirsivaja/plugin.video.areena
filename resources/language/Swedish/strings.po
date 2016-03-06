@@ -174,3 +174,11 @@ msgstr "Efter du har registrerad klicka här för att tillsätta nycklar."
 msgctxt "#32040"
 msgid "Settings"
 msgstr "Inställningar"
+
+msgctxt "#32041"
+msgid "Show clips"
+msgstr "Visa clips"
+
+msgctxt "#32042"
+msgid "Show extra info about streams"
+msgstr "Visa extra program information"
