@@ -7,7 +7,8 @@ import sys
 import urllib
 import json
 import base64
-from Crypto.Cipher import AES
+import os
+import inspect
 from urlparse import parse_qsl
 import datetime
 import time
@@ -17,6 +18,20 @@ import xbmcaddon
 import xbmcgui
 import xbmcplugin
 
+# for windows add Crypto module folder
+if sys.platform == 'win32':
+	cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0], "win32")))
+	if cmd_subfolder not in sys.path:
+		sys.path.insert(0, cmd_subfolder)
+
+# for OSX add Crypto module folder
+if sys.platform == 'darwin':
+	cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile(inspect.currentframe()))[0], "osx")))
+	if cmd_subfolder not in sys.path:
+		sys.path.insert(0, cmd_subfolder)
+
+from Crypto.Cipher import AES
+		
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
 # Get the plugin handle as an integer number.
