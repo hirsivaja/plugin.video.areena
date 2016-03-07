@@ -7,7 +7,6 @@ import sys
 import urllib
 import json
 import base64
-from Crypto.Cipher import AES
 from urlparse import parse_qsl
 import datetime
 import time
@@ -477,10 +476,17 @@ def remove_favourite(fav_type, fav_id, fav_label):
 
 
 def decrypt_url(encrypted_url):
+    decrypted_url = None
     enc = base64.b64decode(encrypted_url)
     iv = enc[:16]
-    cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
-    decrypted_url = cipher.decrypt(enc[16:])
+    try:
+        from Crypto.Cipher import AES
+        cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
+        decrypted_url = cipher.decrypt(enc[16:])
+    except ImportError:
+        import pyaes as AES
+        cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
+        decrypted_url = cipher.decrypt(enc[16:])
     unpadded_url = decrypted_url[:-ord(decrypted_url[len(decrypted_url)-1:])]
     return unpadded_url
 
@@ -492,6 +498,7 @@ def get_app_id():
             import credentials
             app_id = credentials._appId
         except ImportError:
+            credentials = None
             log('Could not find the app_id. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return app_id
@@ -504,6 +511,7 @@ def get_app_key():
             import credentials
             app_key = credentials._appKey
         except ImportError:
+            credentials = None
             log('Could not find the app_key. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return app_key
@@ -516,6 +524,7 @@ def get_secret_key():
             import credentials
             secret_key = credentials._secretKey
         except ImportError:
+            credentials = None
             log('Could not find the secret_key. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return secret_key
