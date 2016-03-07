@@ -182,3 +182,11 @@ msgstr "Näytä ohjelmapätkät"
 msgctxt "#32042"
 msgid "Show extra info about streams"
 msgstr "Näytä ohjelmien lisätiedot"
+
+msgctxt "#32043"
+msgid "Advanced"
+msgstr "Erikoisasetukset"
+
+msgctxt "#32044"
+msgid "Show (probably) unplayable items (name in red)"
+msgstr "Näytä videot joita ei (luultavasti) voi toistaa ([COLOR red]!!![/COLOR])"

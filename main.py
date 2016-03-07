@@ -96,17 +96,25 @@ def list_sub_categories(base_category):
     listing = []
     # Iterate through categories
     for category in categories:
+        unplayable = False
         if 'broader' not in category:
             continue
         if 'id' not in category['broader']:
             continue
-        if category['id'] in _unplayableCategories:
-            continue
+        if category['id'] in _unplayableCategories or category['broader']['id'] in _unplayableCategories:
+            if _addon.getSetting('showUnplayable') == 'true':
+                unplayable = True
+            else:
+                continue
         if category['broader']['id'] == base_category:
             # Create a list item with a text label and a thumbnail image.
             for language_code in get_language_codes():
                 if language_code in category['title']:
-                    category_title = category['title'][language_code]
+                    if unplayable:
+                        category_title = '[COLOR red]{0}[/COLOR]'.format(category['title'][language_code].
+                                                                         encode('utf-8'))
+                    else:
+                        category_title = category['title'][language_code].encode('utf-8')
                     break
             list_item = xbmcgui.ListItem(label=category_title)
             # Set additional info for the list item.
@@ -142,10 +150,10 @@ def list_streams(listing, streams, offset_url):
         stream_info = {}
         context_menu = []
         list_item = None
+        unplayable = False
         # Create a list item with a text label and a thumbnail image.
         if 'subject' in stream:
             # Check if the stream is included in any of the unplayable categories
-            unplayable = False
             category_id = ''
             for subject in stream['subject']:
                 if subject['id'] in _unplayableCategories:
@@ -158,11 +166,16 @@ def list_streams(listing, streams, offset_url):
                         category_id = subject['broader']['id']
                         break
             if unplayable:
-                log('Stream is unplayable. It is in category: {0}'.format(category_id))
-                continue
+                if _addon.getSetting('showUnplayable') == 'false':
+                    log('Stream is unplayable. It is in category: {0}'.format(category_id))
+                    continue
         for language_code in get_language_codes():
             if language_code in stream['title']:
-                list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
+                if unplayable:
+                    list_item = xbmcgui.ListItem(label='[COLOR red]!!![/COLOR] ' + str(stream['title'][language_code].
+                                                                                       encode('utf-8')) + ' ')
+                else:
+                    list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
                 break
         if list_item is None:
             log('no title for stream: {}'.format(stream['title']), xbmc.LOGWARNING)

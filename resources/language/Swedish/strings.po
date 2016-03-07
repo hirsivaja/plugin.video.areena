@@ -182,3 +182,11 @@ msgstr "Visa clips"
 msgctxt "#32042"
 msgid "Show extra info about streams"
 msgstr "Visa extra program information"
+
+msgctxt "#32043"
+msgid "Advanced"
+msgstr "Avancerad"
+
+msgctxt "#32044"
+msgid "Show (probably) unplayable items ([COLOR red]!!![/COLOR])"
+msgstr "Visa ospelbar program ([COLOR red]!!![/COLOR])"

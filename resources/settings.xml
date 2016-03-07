@@ -7,13 +7,15 @@
         <setting id="language" type="enum" label="32003" lvalues="32004|32005|32006" default="0" />
         <setting id="sortMethod" type="enum" label="32014" lvalues="32015|32016|32017|32018|32019|32020|32021" default="6" />
         <setting id="ascOrDesc" type="enum" label="32011" lvalues="32012|32013" default="1" />
-        <setting type="sep"/>
-        <setting id="debug" type="bool" label="32002" default="false" />
     </category>
     <category label="32036">
         <setting type="lsep" label="32037"/>
         <setting id="appID" type="text" label="32033" default=""/>
         <setting id="appKey" type="text" label="32034" default=""/>
         <setting id="secretKey" type="text" label="32035" default=""/>
+    </category>
+    <category label="32043">
+        <setting id="debug" type="bool" label="32002" default="false" />
+        <setting id="showUnplayable" type="bool" label="32044" default="false" />
     </category>
 </settings>

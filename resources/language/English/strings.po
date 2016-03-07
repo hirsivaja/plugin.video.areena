@@ -182,3 +182,11 @@ msgstr ""
 msgctxt "#32042"
 msgid "Show extra info about streams"
 msgstr ""
+
+msgctxt "#32043"
+msgid "Advanced"
+msgstr ""
+
+msgctxt "#32044"
+msgid "Show (probably) unplayable items ([COLOR red]!!![/COLOR])"
+msgstr ""
