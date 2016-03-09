@@ -190,3 +190,35 @@ msgstr "Erikoisasetukset"
 msgctxt "#32044"
 msgid "Show (probably) unplayable items (name in red)"
 msgstr "Näytä videot joita ei (luultavasti) voi toistaa ([COLOR red]!!![/COLOR])"
+
+msgctxt "#32045"
+msgid "Maximum resolution"
+msgstr "Suurin sallittu resoluutio"
+
+msgctxt "#32046"
+msgid "Automatic"
+msgstr "Automaattinen"
+
+msgctxt "#32047"
+msgid "Audio only"
+msgstr "Vain ääni"
+
+msgctxt "#32048"
+msgid "SD-144"
+msgstr ""
+
+msgctxt "#32049"
+msgid "SD-270"
+msgstr ""
+
+msgctxt "#32050"
+msgid "SD-360"
+msgstr ""
+
+msgctxt "#32051"
+msgid "SD-480"
+msgstr ""
+
+msgctxt "#32052"
+msgid "HD-720"
+msgstr ""

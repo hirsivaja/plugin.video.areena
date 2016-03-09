@@ -293,9 +293,9 @@ def play_stream(path):
     url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + get_app_id() + \
           "&app_key=" + get_app_key()
     report_url = None
-    data = get_json(url)
+    data = get_json(url)['data']
     subtitle_list = []
-    for publication in data['data']['publicationEvent']:
+    for publication in data['publicationEvent']:
         if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
             log("Found correct publication, media id: " + publication['media']['id'])
             protocol = 'HLS'
@@ -317,6 +317,22 @@ def play_stream(path):
             path = decrypt_url(encrypted_url)
             break
     log("decrypted path: " + path)
+    if int(_addon.getSetting("maxResolution")) > 0:
+        hd_quality = False
+        if 'video' in data:
+            if 'format' in data['video']:
+                for format_element in data['video']['format']:
+                    if format_element['key'] == 'HD':
+                        hd_quality = True
+                        break
+        max_resolution = int(_addon.getSetting("maxResolution")) - 2
+        if max_resolution > -1:
+            if not hd_quality and max_resolution > 3:
+                max_resolution = 3
+            path = path.replace('master.m3u8', 'index_{0}_av.m3u8'.format(max_resolution))
+        else:
+            path = path.replace('master.m3u8', 'index_0_a.m3u8')
+        log("modified path: " + path)
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
     play_item.setSubtitles(subtitle_list)
@@ -476,17 +492,14 @@ def remove_favourite(fav_type, fav_id, fav_label):
 
 
 def decrypt_url(encrypted_url):
-    decrypted_url = None
     enc = base64.b64decode(encrypted_url)
     iv = enc[:16]
     try:
         from Crypto.Cipher import AES
-        cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
-        decrypted_url = cipher.decrypt(enc[16:])
     except ImportError:
         import pyaes as AES
-        cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
-        decrypted_url = cipher.decrypt(enc[16:])
+    cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
+    decrypted_url = cipher.decrypt(enc[16:])
     unpadded_url = decrypted_url[:-ord(decrypted_url[len(decrypted_url)-1:])]
     return unpadded_url
 

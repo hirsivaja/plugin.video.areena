@@ -190,3 +190,35 @@ msgstr "Avancerad"
 msgctxt "#32044"
 msgid "Show (probably) unplayable items ([COLOR red]!!![/COLOR])"
 msgstr "Visa ospelbar program ([COLOR red]!!![/COLOR])"
+
+msgctxt "#32045"
+msgid "Maximum resolution"
+msgstr "Maximum resolution"
+
+msgctxt "#32046"
+msgid "Automatic"
+msgstr "Automatisk"
+
+msgctxt "#32047"
+msgid "Audio only"
+msgstr "Ljud bara"
+
+msgctxt "#32048"
+msgid "SD-144"
+msgstr ""
+
+msgctxt "#32049"
+msgid "SD-270"
+msgstr ""
+
+msgctxt "#32050"
+msgid "SD-360"
+msgstr ""
+
+msgctxt "#32051"
+msgid "SD-480"
+msgstr ""
+
+msgctxt "#32052"
+msgid "HD-720"
+msgstr ""
