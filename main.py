@@ -318,20 +318,7 @@ def play_stream(path):
             break
     log("decrypted path: " + path)
     if int(_addon.getSetting("maxResolution")) > 0:
-        hd_quality = False
-        if 'video' in data:
-            if 'format' in data['video']:
-                for format_element in data['video']['format']:
-                    if format_element['key'] == 'HD':
-                        hd_quality = True
-                        break
-        max_resolution = int(_addon.getSetting("maxResolution")) - 2
-        if max_resolution > -1:
-            if not hd_quality and max_resolution > 3:
-                max_resolution = 3
-            path = path.replace('master.m3u8', 'index_{0}_av.m3u8'.format(max_resolution))
-        else:
-            path = path.replace('master.m3u8', 'index_0_a.m3u8')
+        path = get_resolution_specific_url(path)
         log("modified path: " + path)
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
@@ -342,6 +329,29 @@ def play_stream(path):
         log("Could not report usage. Got code {0}".format(response.getcode()), xbmc.LOGWARNING)
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
+
+
+def get_resolution_specific_url(path):
+    """
+    Use the master url to get the correct resolution specific url.
+    :param path: path to master.m3u8
+    :return: resolution specific path
+    """
+    response = urllib.urlopen(path).read()
+    log(response)
+    resolution_urls = []
+    for line in response.split('\n'):
+        if line.startswith('http'):
+            resolution_urls.append(line)
+    max_resolution = int(_addon.getSetting("maxResolution")) - 2
+    if max_resolution < 0:
+        return path.replace('master.m3u8', 'index_0_a.m3u8')
+    for resolution in xrange(max_resolution, 0, -1):
+        for resolution_url in resolution_urls:
+            if 'index_{0}_av.m3u8'.format(resolution) in resolution_url:
+                path = '{0}?{1}'.format(resolution_url.split('?', 1)[0], path.split('?', 1)[1])
+                return path
+    raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
 
 
 def search(search_string=None, offset=0, clear_search=False, remove_string=None):

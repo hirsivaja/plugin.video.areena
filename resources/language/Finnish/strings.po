@@ -222,3 +222,7 @@ msgstr ""
 msgctxt "#32052"
 msgid "HD-720"
 msgstr ""
+
+msgctxt "#32053"
+msgid "HD-1080"
+msgstr ""
