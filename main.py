@@ -37,7 +37,10 @@ def log(txt, log_level=xbmc.LOGDEBUG):
     """
     if (_addon.getSetting("debug") == "true") or (log_level != xbmc.LOGDEBUG):
         if isinstance(txt, str):
-            txt = txt.decode("utf-8")
+            try:
+                txt = txt.decode("utf-8")
+            except UnicodeDecodeError:
+                xbmc.log('Could not decode to Unicode: {0}'.format(txt), level=xbmc.LOGWARNING)
         message = u'%s: %s' % (_addonid, txt)
         xbmc.log(msg=message.encode("utf-8"), level=log_level)
 
@@ -177,7 +180,7 @@ def list_streams(listing, streams, offset_url):
                     list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
                 break
         if list_item is None:
-            log('no title for stream: {}'.format(stream['title']), xbmc.LOGWARNING)
+            log('no title for stream: {0}'.format(stream['title']), xbmc.LOGWARNING)
             break
         if 'available' in stream['image']:
             if stream['image']['available']:
@@ -249,7 +252,7 @@ def list_streams(listing, streams, offset_url):
                         list_item.setLabel("[COLOR red]{0}d[/COLOR] {1}".format(str(ttl), list_item.getLabel()))
                 break
         if not found_current_publication:
-            log("No publication with 'currently': {}".format(stream['title']), xbmc.LOGWARNING)
+            log("No publication with 'currently': {0}".format(stream['title']), xbmc.LOGWARNING)
             continue
         add_favourite_context_menu_item = (get_translation(32026),
                                            'RunPlugin({0}?action=add_favourite&type=episode&id={1}&label={2})'.
@@ -455,7 +458,7 @@ def new_search(search_type):
     keyboard = xbmc.Keyboard()
     keyboard.doModal()
     if keyboard.isConfirmed() and keyboard.getText() != '':
-        search_text = "{}:{}".format(search_type, keyboard.getText())
+        search_text = "{0}:{1}".format(search_type, keyboard.getText())
         search(search_text, 0)
     xbmcplugin.endOfDirectory(_handle)
 
@@ -588,7 +591,7 @@ def get_language_codes():
         return ['sv', 'fi', 'en']
     elif language == 2:
         return ['en', 'fi', 'sv']
-    raise ValueError('Unknown language {}'.format(language))
+    raise ValueError('Unknown language {0}'.format(language))
 
 
 def get_translation(translation_id):
@@ -604,7 +607,7 @@ def get_sort_method():
     elif asc_or_desc == 1:
         asc_or_desc = 'desc'
     else:
-        raise ValueError('Unknown sort type {}'.format(asc_or_desc))
+        raise ValueError('Unknown sort type {0}'.format(asc_or_desc))
 
     if sort_method == 0:
         sort_method = 'playcount.6h'
@@ -621,9 +624,9 @@ def get_sort_method():
     elif sort_method == 6:
         sort_method = 'updated'
     else:
-        raise ValueError('Unknown sort method {}'.format(sort_method))
+        raise ValueError('Unknown sort method {0}'.format(sort_method))
 
-    return '{}:{}'.format(sort_method, asc_or_desc)
+    return '{0}:{1}'.format(sort_method, asc_or_desc)
 
 
 def get_region():
