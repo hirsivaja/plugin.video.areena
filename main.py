@@ -41,6 +41,7 @@ def log(txt, log_level=xbmc.LOGDEBUG):
                 txt = txt.decode("utf-8")
             except UnicodeDecodeError:
                 xbmc.log('Could not decode to Unicode: {0}'.format(txt), level=xbmc.LOGWARNING)
+                return
         message = u'%s: %s' % (_addonid, txt)
         xbmc.log(msg=message.encode("utf-8"), level=log_level)
 
