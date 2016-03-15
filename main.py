@@ -194,7 +194,8 @@ def list_streams(listing, streams, offset_url):
                 break
         if 'duration' in stream:
             duration = get_timedelta_from_duration(stream['duration'])
-            if duration is not None:
+            # The total_seconds function was introduced in Python 2.7
+            if duration is not None and 'total_seconds' in dir(duration):
                 info_labels = info_labels + ('duration', duration.total_seconds())
                 stream_info = {'duration': duration.total_seconds()}
         if 'partOfSeason' in stream or 'episodeNumber' in stream:
