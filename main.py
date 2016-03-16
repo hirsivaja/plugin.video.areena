@@ -240,18 +240,18 @@ def list_streams(listing, streams, offset_url):
                 if 'startTime' in publication and 'endTime' in publication:
                     if _addon.getSetting('showExtraInfo') == 'true':
                         list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
-                        out_format = '%d-%m-%Y %H:%M:%S'
+                        out_format = '%d.%m.%Y'
                         start_time = time.strptime(publication['startTime'].split('+')[0], _yle_time_format)
                         start_time = time.strftime(out_format, start_time)
                         end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         end_time = time.strftime(out_format, end_time)
-                        list_item.setLabel('{0} [COLOR red]{1} - {2}[/COLOR]'.format(list_item.getLabel(), start_time,
+                        list_item.setLabel('[B]{0}[/B][LIGHT][COLOR grey]{1} | saatavuus {2} asti [/COLOR][/LIGHT]'.format(list_item.getLabel(), start_time,
                                                                                      end_time))
                     else:
                         ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
                         ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                        list_item.setLabel("[COLOR red]{0}d[/COLOR] {1}".format(str(ttl), list_item.getLabel()))
+                        list_item.setLabel("[B]{1}[/B] | [LIGHT][COLOR grey]{0} pv jäljellä[/COLOR][/LIGHT] ".format(str(ttl), list_item.getLabel()))
                 break
         if not found_current_publication:
             log("No publication with 'currently': {0}".format(stream['title']), xbmc.LOGWARNING)
@@ -390,9 +390,9 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
         for search_item in searches:
             search_type, query = search_item.split(':', 1)
             if search_type == 'free':
-                search_list_item = xbmcgui.ListItem(label="[COLOR green]" + get_translation(32023) + "[/COLOR]" + query)
+                search_list_item = xbmcgui.ListItem(label="[COLOR grey]" + get_translation(32023) + "[/COLOR]" + query)
             else:
-                search_list_item = xbmcgui.ListItem(label="[COLOR red]" + get_translation(32024) + "[/COLOR]" + query)
+                search_list_item = xbmcgui.ListItem(label="[COLOR grey]" + get_translation(32024) + "[/COLOR]" + query)
             search_url = '{0}?action=search&search_string={1}'.format(_url, search_item)
             context_menu = []
             remove_context_menu_item = \
@@ -649,22 +649,22 @@ def show_menu():
     if get_app_id() == '' or get_app_key() == '' or get_secret_key() == '':
         return show_credentials_needed_menu()
     listing = []
-    search_list_item = xbmcgui.ListItem(label='[' + get_translation(32007) + ']')
-    search_url = '{0}?action=search'.format(_url)
-    listing.append((search_url, search_list_item, True))
-    favourites_list_item = xbmcgui.ListItem(label='[' + get_translation(32025) + ']')
-    favourites_url = '{0}?action=favourites'.format(_url)
-    listing.append((favourites_url, favourites_list_item, True))
-    open_settings_list_item = xbmcgui.ListItem(label='[' + get_translation(32040) + ']')
-    open_settings_url = '{0}?action=settings'.format(_url)
-    listing.append((open_settings_url, open_settings_list_item, True))
-    tv_list_item = xbmcgui.ListItem(label='[' + get_translation(32031) + ']')
+    tv_list_item = xbmcgui.ListItem(label='' + get_translation(32031) + '')
     tv_url = '{0}?action=categories&base=5-130'.format(_url)
     listing.append((tv_url, tv_list_item, True))
-    radio_list_item = xbmcgui.ListItem(label='[' + get_translation(32032) + ']')
+    radio_list_item = xbmcgui.ListItem(label='' + get_translation(32032) + '')
     radio_url = '{0}?action=categories&base=5-200'.format(_url)
     listing.append((radio_url, radio_list_item, True))
-    # Add our listing to Kodi.
+    search_list_item = xbmcgui.ListItem(label='' + get_translation(32007) + '')
+    search_url = '{0}?action=search'.format(_url)
+    listing.append((search_url, search_list_item, True))
+    favourites_list_item = xbmcgui.ListItem(label='' + get_translation(32025) + '')
+    favourites_url = '{0}?action=favourites'.format(_url)
+    listing.append((favourites_url, favourites_list_item, True))
+    open_settings_list_item = xbmcgui.ListItem(label='' + get_translation(32040) + '')
+    open_settings_url = '{0}?action=settings'.format(_url)
+    listing.append((open_settings_url, open_settings_list_item, True))
+        # Add our listing to Kodi.
     xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
