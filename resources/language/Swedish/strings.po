@@ -226,3 +226,11 @@ msgstr ""
 msgctxt "#32053"
 msgid "HD-1080"
 msgstr ""
+
+msgctxt "#32054"
+msgid "until"
+msgstr "till"
+
+msgctxt "#32055"
+msgid "d remaining"
+msgstr "d kvar"

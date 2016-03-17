@@ -238,6 +238,11 @@ def list_streams(listing, streams, offset_url):
                     continue
                 found_current_publication = True
                 if 'startTime' in publication and 'endTime' in publication:
+                    light_tag_open = ''
+                    light_tag_close = ''
+                    if int(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version').split('.', 1)[0]) > 15:
+                        light_tag_open = '[LIGHT]'
+                        light_tag_close = '[/LIGHT]'
                     if _addon.getSetting('showExtraInfo') == 'true':
                         list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
                         out_format = '%d.%m.%Y'
@@ -245,13 +250,16 @@ def list_streams(listing, streams, offset_url):
                         start_time = time.strftime(out_format, start_time)
                         end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         end_time = time.strftime(out_format, end_time)
-                        list_item.setLabel('[B]{0}[/B][LIGHT][COLOR grey]{1} | saatavuus {2} asti [/COLOR][/LIGHT]'.format(list_item.getLabel(), start_time,
-                                                                                     end_time))
+                        list_item.setLabel('[B]{0}[/B]{1}[COLOR grey]{2} | {3} {4}[/COLOR]{5}'.
+                                           format(list_item.getLabel(), light_tag_open, start_time,
+                                                  get_translation(32054), end_time, light_tag_close))
                     else:
                         ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
                         ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                        list_item.setLabel("[B]{1}[/B] | [LIGHT][COLOR grey]{0} pv jäljellä[/COLOR][/LIGHT] ".format(str(ttl), list_item.getLabel()))
+                        list_item.setLabel("[B]{0}[/B] | {1}[COLOR grey]{2} {3}[/COLOR]{4} ".
+                                           format(list_item.getLabel(), light_tag_open, str(ttl),
+                                                  get_translation(32055), light_tag_close))
                 break
         if not found_current_publication:
             log("No publication with 'currently': {0}".format(stream['title']), xbmc.LOGWARNING)
@@ -390,7 +398,8 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
         for search_item in searches:
             search_type, query = search_item.split(':', 1)
             if search_type == 'free':
-                search_list_item = xbmcgui.ListItem(label="[COLOR grey]" + get_translation(32023) + "[/COLOR]" + query)
+                search_list_item = xbmcgui.ListItem(label="[COLOR lightgreen]" + get_translation(32023) + "[/COLOR]" +
+                                                          query)
             else:
                 search_list_item = xbmcgui.ListItem(label="[COLOR grey]" + get_translation(32024) + "[/COLOR]" + query)
             search_url = '{0}?action=search&search_string={1}'.format(_url, search_item)
@@ -664,7 +673,7 @@ def show_menu():
     open_settings_list_item = xbmcgui.ListItem(label='' + get_translation(32040) + '')
     open_settings_url = '{0}?action=settings'.format(_url)
     listing.append((open_settings_url, open_settings_list_item, True))
-        # Add our listing to Kodi.
+    # Add our listing to Kodi.
     xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     # Add a sort method for the virtual folder items (alphabetically, ignore articles)
     xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
