@@ -188,7 +188,7 @@ msgid "Advanced"
 msgstr "Erikoisasetukset"
 
 msgctxt "#32044"
-msgid "Show (probably) unplayable items (name in red)"
+msgid "Show (probably) unplayable items ([COLOR red]!!![/COLOR])"
 msgstr "Näytä videot joita ei (luultavasti) voi toistaa ([COLOR red]!!![/COLOR])"
 
 msgctxt "#32045"

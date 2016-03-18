@@ -606,7 +606,7 @@ def get_language_codes():
 
 
 def get_translation(translation_id):
-    return _addon.getLocalizedString(translation_id)
+    return _addon.getLocalizedString(translation_id).encode('utf-8')
 
 
 def get_sort_method():
