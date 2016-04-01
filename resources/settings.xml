@@ -8,6 +8,17 @@
         <setting id="sortMethod" type="enum" label="32014" lvalues="32015|32016|32017|32018|32019|32020|32021" default="6" />
         <setting id="ascOrDesc" type="enum" label="32011" lvalues="32012|32013" default="1" />
     </category>
+    <category label="32058">
+        <setting type="lsep" label="32063"/>
+        <setting id="randomColors" type="bool" label="32066" default="false" />
+        <setting id="boldTitles" type="bool" label="32057" default="true" />
+        <setting id="menuItemColor" type="text" label="32064" default="none" />
+        <setting id="titleColor" type="text" label="32065" default="none" />
+        <setting id="dateColor" type="text" label="32059" default="grey" />
+        <setting id="freeSearchColor" type="text" label="32060" default="lightgreen" />
+        <setting id="seriesSearchColor" type="text" label="32061" default="grey" />
+        <setting id="unplayableColor" type="text" label="32062" default="red" />
+    </category>
     <category label="32036">
         <setting type="lsep" label="32037"/>
         <setting id="appID" type="text" label="32033" default=""/>
@@ -17,6 +28,7 @@
     <category label="32043">
         <setting id="debug" type="bool" label="32002" default="false" />
         <setting id="showUnplayable" type="bool" label="32044" default="false" />
+        <setting id="noSubtitlesForDefaultLangAudio" type="bool" label="32056" default="false" />
         <setting id="maxResolution" type="enum" label="32045" lvalues="32046|32047|32048|32049|32050|32051|32052|32053" default="0" />
     </category>
 </settings>

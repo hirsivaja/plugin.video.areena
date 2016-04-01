@@ -234,3 +234,47 @@ msgstr "till"
 msgctxt "#32055"
 msgid "d remaining"
 msgstr "d kvar"
+
+msgctxt "#32056"
+msgid "Do not show subtitles if audio in the default language is available"
+msgstr "Inte visa undertexter om ljud med väljat språk är befintlig"
+
+msgctxt "#32057"
+msgid "Make program titles bold"
+msgstr ""
+
+msgctxt "#32058"
+msgid "UI settings"
+msgstr ""
+
+msgctxt "#32059"
+msgid "Program date color"
+msgstr ""
+
+msgctxt "#32060"
+msgid "Free search item color"
+msgstr ""
+
+msgctxt "#32061"
+msgid "Series search item color"
+msgstr ""
+
+msgctxt "#32062"
+msgid "Unplayable item color"
+msgstr ""
+
+msgctxt "#32063"
+msgid "For the list of available colors see: [CR]http://forum.kodi.tv/showthread.php?tid=210837"
+msgstr ""
+
+msgctxt "#32064"
+msgid "Menu item color"
+msgstr ""
+
+msgctxt "#32065"
+msgid "Title color"
+msgstr ""
+
+msgctxt "#32066"
+msgid "Random UI colors"
+msgstr ""

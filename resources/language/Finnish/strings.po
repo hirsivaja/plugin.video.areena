@@ -234,3 +234,47 @@ msgstr "poistuu"
 msgctxt "#32055"
 msgid "d remaining"
 msgstr "pv jäljellä"
+
+msgctxt "#32056"
+msgid "Do not show subtitles if audio in the default language is available"
+msgstr "Älä näytä tekstityksiä, jos ääniraita oletuskielellä on saatavilla"
+
+msgctxt "#32057"
+msgid "Make program titles bold"
+msgstr "Lihavoi ohjelmien nimet"
+
+msgctxt "#32058"
+msgid "UI settings"
+msgstr "Käyttöliittymäasetukset"
+
+msgctxt "#32059"
+msgid "Program date color"
+msgstr "Ohjelman aikatietojen väri"
+
+msgctxt "#32060"
+msgid "Free search item color"
+msgstr "Vapaan haun väri"
+
+msgctxt "#32061"
+msgid "Series search item color"
+msgstr "Sarjahaun väri"
+
+msgctxt "#32062"
+msgid "Unplayable item color"
+msgstr "Väri toimimattomille ohjelmille ja kategorioille"
+
+msgctxt "#32063"
+msgid "For the list of available colors see: [CR]http://forum.kodi.tv/showthread.php?tid=210837"
+msgstr "Lista mahdollisista värikoodeista löytyy osoitteesta: [CR]http://forum.kodi.tv/showthread.php?tid=210837"
+
+msgctxt "#32064"
+msgid "Menu item color"
+msgstr "Valikon kohteiden väri"
+
+msgctxt "#32065"
+msgid "Title color"
+msgstr "Ohjelman nimen väri"
+
+msgctxt "#32066"
+msgid "Random UI colors"
+msgstr "Käytä satunnaisia värejä"

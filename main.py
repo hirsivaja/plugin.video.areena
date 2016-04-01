@@ -114,10 +114,11 @@ def list_sub_categories(base_category):
             for language_code in get_language_codes():
                 if language_code in category['title']:
                     if unplayable:
-                        category_title = '[COLOR red]{0}[/COLOR]'.format(category['title'][language_code].
-                                                                         encode('utf-8'))
+                        category_title = '[COLOR {0}]{1}[/COLOR]'.format(
+                            get_color('unplayableColor'), category['title'][language_code].encode('utf-8'))
                     else:
-                        category_title = category['title'][language_code].encode('utf-8')
+                        category_title = '[COLOR {0}]{1}[/COLOR]'.format(
+                            get_color('menuItemColor'), category['title'][language_code].encode('utf-8'))
                     break
             list_item = xbmcgui.ListItem(label=category_title)
             # Set additional info for the list item.
@@ -175,8 +176,8 @@ def list_streams(listing, streams, offset_url):
         for language_code in get_language_codes():
             if language_code in stream['title']:
                 if unplayable:
-                    list_item = xbmcgui.ListItem(label='[COLOR red]!!![/COLOR] ' + str(stream['title'][language_code].
-                                                                                       encode('utf-8')) + ' ')
+                    list_item = xbmcgui.ListItem(label='[COLOR ' + get_color('unplayableColor') + ']!!![/COLOR] ' +
+                                                       str(stream['title'][language_code].encode('utf-8')) + ' ')
                 else:
                     list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
                 break
@@ -240,9 +241,14 @@ def list_streams(listing, streams, offset_url):
                 if 'startTime' in publication and 'endTime' in publication:
                     light_tag_open = ''
                     light_tag_close = ''
+                    bold_tag_open = ''
+                    bold_tag_close = ''
                     if int(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version').split('.', 1)[0]) > 15:
                         light_tag_open = '[LIGHT]'
                         light_tag_close = '[/LIGHT]'
+                    if _addon.getSetting("boldTitles") == "true":
+                        bold_tag_open = '[B]'
+                        bold_tag_close = '[/B]'
                     if _addon.getSetting('showExtraInfo') == 'true':
                         list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
                         out_format = '%d.%m.%Y'
@@ -250,15 +256,21 @@ def list_streams(listing, streams, offset_url):
                         start_time = time.strftime(out_format, start_time)
                         end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         end_time = time.strftime(out_format, end_time)
-                        list_item.setLabel('[B]{0}[/B]{1}[COLOR grey]{2} | {3} {4}[/COLOR]{5}'.
-                                           format(list_item.getLabel(), light_tag_open, start_time,
+                        # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B]
+                        # [LIGHT][COLOR grey]1.1.2016 until 1.1.2017[/COLOR][/LIGHT]'
+                        list_item.setLabel('{0}[COLOR {1}]{2}[/COLOR]{3}{4}[COLOR {5}]{6} | {7} {8}[/COLOR]{9}'.
+                                           format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
+                                                  bold_tag_close, light_tag_open, get_color('dateColor'), start_time,
                                                   get_translation(32054), end_time, light_tag_close))
                     else:
                         ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
                         now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
                         ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                        list_item.setLabel("[B]{0}[/B] | {1}[COLOR grey]{2} {3}[/COLOR]{4} ".
-                                           format(list_item.getLabel(), light_tag_open, str(ttl),
+                        # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B] |
+                        # [LIGHT][COLOR grey]30 d remaining[/COLOR][/LIGHT]'
+                        list_item.setLabel("{0}[COLOR {1}]{2}[/COLOR]{3} | {4}[COLOR {5}]{6} {7}[/COLOR]{8} ".
+                                           format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
+                                                  bold_tag_close, light_tag_open, get_color('dateColor'), str(ttl),
                                                   get_translation(32055), light_tag_close))
                 break
         if not found_current_publication:
@@ -282,9 +294,9 @@ def list_streams(listing, streams, offset_url):
         is_folder = False
         # Add our item to the listing as a 3-element tuple.
         listing.append((url, list_item, is_folder))
-
     if len(listing) > 24:
-        list_item = xbmcgui.ListItem(label=get_translation(32008))
+        list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+            get_color('menuItemColor'), get_translation(32008)))
         listing.append((offset_url, list_item, True))
     # Add our listing to Kodi.
     # Large lists and/or slower systems benefit from adding all items at once via addDirectoryItems
@@ -340,6 +352,26 @@ def play_stream(path):
     response = urllib.urlopen(report_url)
     if response.getcode() != 200:
         log("Could not report usage. Got code {0}".format(response.getcode()), xbmc.LOGWARNING)
+    if _addon.getSetting("noSubtitlesForDefaultLangAudio") == 'true':
+        disable_subtitles = False
+        if 'audio' in data:
+            for audio in data['audio']:
+                if 'language' in audio:
+                    for language in audio['language']:
+                        if language == get_language_codes()[0]:
+                            disable_subtitles = True
+        if disable_subtitles:
+            xbmcplugin.endOfDirectory(_handle, True, False, False)
+            player = xbmc.Player()
+            player.play(item=path, listitem=play_item)
+            tries = 10
+            while tries > 0:
+                time.sleep(1)
+                tries -= 1
+                if player.isPlaying():
+                    break
+            player.showSubtitles(False)
+            return
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
 
@@ -381,13 +413,16 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
     if search_string is None:
         log("Show search UI")
         listing = []
-        new_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32009) + ']')
+        new_search_list_item = xbmcgui.ListItem(label='[COLOR {0}][{1}][/COLOR]'.format(
+            get_color('menuItemColor'), get_translation(32009)))
         new_search_url = '{0}?action=new_search&type=free'.format(_url)
         listing.append((new_search_url, new_search_list_item, True))
-        new_series_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32022) + ']')
+        new_series_search_list_item = xbmcgui.ListItem(label='[COLOR {0}][{1}][/COLOR]'.format(
+            get_color('menuItemColor'), get_translation(32022)))
         new_series_search_url = '{0}?action=new_search&type=series'.format(_url)
         listing.append((new_series_search_url, new_series_search_list_item, True))
-        clear_search_list_item = xbmcgui.ListItem(label='[' + get_translation(32010) + ']')
+        clear_search_list_item = xbmcgui.ListItem(label='[COLOR {0}][{1}][/COLOR]'.format(
+            get_color('menuItemColor'), get_translation(32010)))
         clear_search_url = '{0}?action=search&clear_search=1'.format(_url)
         listing.append((clear_search_url, clear_search_list_item, True))
         searches = _addon.getSetting("searches").splitlines()
@@ -398,10 +433,11 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
         for search_item in searches:
             search_type, query = search_item.split(':', 1)
             if search_type == 'free':
-                search_list_item = xbmcgui.ListItem(label="[COLOR lightgreen]" + get_translation(32023) + "[/COLOR]" +
-                                                          query)
+                search_list_item = xbmcgui.ListItem(label="[COLOR {0}]{1}[/COLOR]{2}".format(
+                    get_color('freeSearchColor'), get_translation(32023), query))
             else:
-                search_list_item = xbmcgui.ListItem(label="[COLOR grey]" + get_translation(32024) + "[/COLOR]" + query)
+                search_list_item = xbmcgui.ListItem(label="[COLOR {0}]{1}[/COLOR]{2}".format(
+                    get_color('seriesSearchColor'), get_translation(32024), query))
             search_url = '{0}?action=search&search_string={1}'.format(_url, search_item)
             context_menu = []
             remove_context_menu_item = \
@@ -654,23 +690,60 @@ def get_media_type():
         return '&type=program'
 
 
+def get_color(setting):
+    color = _addon.getSetting(setting)
+    colors = ["aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque", "black", "blanchedalmond",
+              "blue", "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
+              "cornflowerblue", "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod", "darkgray",
+              "darkgreen", "darkgrey", "darkkhaki", "darkmagenta", "darkolivegreen", "darkorange", "darkorchid",
+              "darkred", "darksalmon", "darkseagreen", "darkslateblue", "darkslategray", "darkslategrey",
+              "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray", "dimgrey", "dodgerblue", "firebrick",
+              "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite", "gold", "goldenrod", "gray", "green",
+              "greenyellow", "grey", "honeydew", "hotpink", "indianred", "indigo", "ivory", "khaki", "lavender",
+              "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+              "lightgoldenrodyellow", "lightgray", "lightgreen", "lightgrey", "lightpink", "lightsalmon",
+              "lightseagreen", "lightskyblue", "lightslategray", "lightslategrey", "lightsteelblue", "lightyellow",
+              "lime", "limegreen", "linen", "magenta", "maroon", "mediumaquamarine", "mediumblue", "mediumorchid",
+              "mediumpurple", "mediumseagreen", "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+              "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin", "navajowhite", "navy", "none",
+              "oldlace", "olive", "olivedrab", "orange", "orangered", "orchid", "palegoldenrod", "palegreen",
+              "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
+              "purple", "red", "rosybrown", "royalblue", "saddlebrown", "salmon", "sandybrown", "seagreen", "seashell",
+              "sienna", "silver", "skyblue", "slateblue", "slategray", "slategrey", "snow", "springgreen", "steelblue",
+              "tan", "teal", "thistle", "tomato", "transparent", "turquoise", "violet", "wheat", "white", "whitesmoke",
+              "yellow", "yellowgreen"]
+    if _addon.getSetting('randomColors') == 'true':
+        import random
+        return random.choice(colors)
+    if color not in colors:
+        log('Unknown color "{0}."'.format(color), xbmc.LOGWARNING)
+        log('Available colors: {0}'.format(colors))
+        return 'black'
+    return color
+
+
 def show_menu():
     if get_app_id() == '' or get_app_key() == '' or get_secret_key() == '':
         return show_credentials_needed_menu()
     listing = []
-    tv_list_item = xbmcgui.ListItem(label='' + get_translation(32031) + '')
+    tv_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32031)))
     tv_url = '{0}?action=categories&base=5-130'.format(_url)
     listing.append((tv_url, tv_list_item, True))
-    radio_list_item = xbmcgui.ListItem(label='' + get_translation(32032) + '')
+    radio_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32032)))
     radio_url = '{0}?action=categories&base=5-200'.format(_url)
     listing.append((radio_url, radio_list_item, True))
-    search_list_item = xbmcgui.ListItem(label='' + get_translation(32007) + '')
+    search_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32007)))
     search_url = '{0}?action=search'.format(_url)
     listing.append((search_url, search_list_item, True))
-    favourites_list_item = xbmcgui.ListItem(label='' + get_translation(32025) + '')
+    favourites_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32025)))
     favourites_url = '{0}?action=favourites'.format(_url)
     listing.append((favourites_url, favourites_list_item, True))
-    open_settings_list_item = xbmcgui.ListItem(label='' + get_translation(32040) + '')
+    open_settings_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32040)))
     open_settings_url = '{0}?action=settings'.format(_url)
     listing.append((open_settings_url, open_settings_list_item, True))
     # Add our listing to Kodi.
