@@ -349,7 +349,7 @@ def play_stream(path):
     play_item = xbmcgui.ListItem(path=path)
     play_item.setSubtitles(subtitle_list)
     # Report usage to YLE
-    response = urllib.urlopen(report_url)
+    response = get_url_response(report_url)
     if response.getcode() != 200:
         log("Could not report usage. Got code {0}".format(response.getcode()), xbmc.LOGWARNING)
     if _addon.getSetting("noSubtitlesForDefaultLangAudio") == 'true':
@@ -382,7 +382,7 @@ def get_resolution_specific_url(path):
     :param path: path to master.m3u8
     :return: resolution specific path
     """
-    response = urllib.urlopen(path).read()
+    response = get_url_response(path).read()
     log(response)
     resolution_urls = []
     for line in response.split('\n'):
@@ -605,13 +605,25 @@ def get_secret_key():
 
 def get_json(url):
     log(url)
-    response = urllib.urlopen(url)
+    response = get_url_response(url)
     log(response)
     if response is None or response == '':
         raise ValueError('Request "{0}" returned an empty response.'.format(url))
     data = json.loads(response.read())
     log(data)
     return data
+
+
+def get_url_response(url):
+    try:
+        return urllib.urlopen(url)
+    except IOError as error:
+        if 'CERTIFICATE_VERIFY_FAILED' in error.message:
+            # The certificate was not found. Let's try without verification.
+            import ssl
+            return urllib.urlopen(url, context=ssl._create_unverified_context())
+        else:
+            raise error
 
 
 def get_timedelta_from_duration(duration):
