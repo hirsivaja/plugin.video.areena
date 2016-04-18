@@ -150,7 +150,7 @@ def list_streams(listing, streams, offset_url):
     """
     # Iterate through the streams.
     for stream in streams:
-        info_labels = ()
+        info_labels = {}
         stream_info = {}
         context_menu = []
         list_item = None
@@ -191,13 +191,18 @@ def list_streams(listing, streams, offset_url):
                 list_item.setThumbnailImage(image_url)
         for language_code in get_language_codes():
             if language_code in stream['description']:
-                info_labels = info_labels + ('plot', stream['description'][language_code].encode('utf-8'))
+                info_labels['plot'] = stream['description'][language_code].encode('utf-8')
                 break
+        if 'promotionTitle' in stream:
+            for language_code in get_language_codes():
+                if language_code in stream['promotionTitle']:
+                    info_labels['tagline'] = stream['description'][language_code].encode('utf-8')
+                    break
         if 'duration' in stream:
             duration = get_timedelta_from_duration(stream['duration'])
             # The total_seconds function was introduced in Python 2.7
             if duration is not None and 'total_seconds' in dir(duration):
-                info_labels = info_labels + ('duration', duration.total_seconds())
+                info_labels['duration'] = duration.total_seconds()
                 stream_info = {'duration': duration.total_seconds()}
         if 'partOfSeason' in stream or 'episodeNumber' in stream:
             season_string = ''
@@ -205,11 +210,11 @@ def list_streams(listing, streams, offset_url):
             if 'partOfSeason' in stream:
                 if 'seasonNumber' in stream['partOfSeason']:
                     season_number = stream['partOfSeason']['seasonNumber']
-                    info_labels = info_labels + ('season', season_number)
+                    info_labels['season'] = season_number
                     season_string = 'S{0}'.format(str(season_number))
             if 'episodeNumber' in stream:
                 episode_number = stream['episodeNumber']
-                info_labels = info_labels + ('episode', episode_number)
+                info_labels['episode'] = episode_number
                 episode_string = 'E{0}'.format(str(episode_number))
             list_item.setLabel('{0} - {1}{2}'.format(list_item.getLabel(), season_string, episode_string))
         if 'itemTitle' in stream:
