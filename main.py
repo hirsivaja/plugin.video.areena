@@ -46,33 +46,88 @@ def log(txt, log_level=xbmc.LOGDEBUG):
         xbmc.log(msg=message.encode("utf-8"), level=log_level)
 
 
+def get_areena_api_json_data(folder_name, json_name, parameters):
+    """
+    Return the data portion of the json response from the Yle API
+    :param folder_name: folder part of the URL
+    :param json_name: name of the JSON file in the URL
+    :param parameters: get parameters for the url
+    :return: data from the JSON response
+    """
+    url = get_areena_api_url(folder_name, json_name, parameters)
+    response = get_url_response(url)
+    log(response)
+    if response is None or response == '':
+        raise ValueError('Request "{0}" returned an empty response.'.format(url))
+    data = json.loads(response.read())
+    log(data)
+    return data['data']
+
+
+def get_areena_api_url(folder_name, item_name, parameters):
+    parameters.append('app_id=' + get_app_id())
+    parameters.append('app_key=' + get_app_key())
+    url = 'https://external.api.yle.fi/v1/{0}/{1}?{2}'.format(folder_name, item_name, '&'.join(parameters))
+    log(url)
+    return url
+
+
 def get_categories():
     """
     Get a list of all the categories.
-    :return: list
+    :return: list of categories in JSON
     """
-    url = "https://external.api.yle.fi/v1/programs/categories.json?app_id=" + get_app_id() + "&app_key=" + get_app_key()
-    return get_json(url)['data']
+    return get_areena_api_json_data('programs', 'categories.json', [])
 
 
-def get_streams(category, offset):
+def get_items(offset, category=None, query=None, limit=None, series=None):
     """
-    Get the list of streams.
-    :param category: category id
+    Get the list of items.
     :param offset: offset for streams to retrieve
-    :return: json data of the streams
+    :param category: possible category id
+    :param query: possible search query
+    :param limit: possible search limit
+    :param series: possible serie to list
+    :return: json data of the items
     """
+    parameters = []
+    if category:
+        parameters.append('category={0}'.format(category))
+    if query:
+        parameters.append('q={0}'.format(query))
+    if limit:
+        parameters.append('limit={0}'.format(limit))
+    if series:
+        parameters.append('series=' + series)
+    if _addon.getSetting("showClips") == "false":
+        parameters.append('type=program')
+    if _addon.getSetting("inFinland") == "false":
+        parameters.append('region=world')
+    if _addon.getSetting("showUnplayable") == "false":
+        parameters.append('contentprotection=22-0,22-1')
+    parameters.append('availability=ondemand')
+    parameters.append('order=' + get_sort_method())
+    parameters.append('offset=' + str(offset))
+    return get_areena_api_json_data('programs', 'items.json', parameters)
 
-    url = "https://external.api.yle.fi/v1/programs/items.json?" \
-          "availability=ondemand" \
-          "&category=" + category + \
-          get_media_type() + \
-          "&order=" + get_sort_method() + \
-          "&contentprotection=22-0,22-1" \
-          "&offset=" + str(offset) + \
-          get_region() + \
-          "&app_id=" + get_app_id() + "&app_key=" + get_app_key()
-    return get_json(url)['data']
+
+def get_item(program_id):
+    """
+    Get the item data
+    :param program_id: Unique ID of the item
+    :return: json data of the item
+    """
+    return get_areena_api_json_data('programs/items', '{}.json'.format(program_id), [])
+
+
+def get_playout(program_id, media_id, protocol):
+    parameters = ['program_id=' + program_id, 'media_id=' + media_id, 'protocol=' + protocol]
+    return get_areena_api_json_data('media', 'playouts.json', parameters)
+
+
+def get_report_url(program_id, media_id):
+    parameters = ['program_id=' + program_id, 'media_id=' + media_id]
+    return get_areena_api_url('tracking', 'streamstart', parameters)
 
 
 def list_categories(base_category):
@@ -133,11 +188,9 @@ def list_sub_categories(base_category):
 
 
 def list_series(series_id, offset):
-    result = get_json("https://external.api.yle.fi/v1/programs/items.json?series={0}&offset={1}&order={2}"
-                      "&availability=ondemand{3}&app_id={4}&app_key={5}"
-                      .format(series_id, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
+    series = get_items(offset, series=series_id)
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
-    list_streams([], result['data'], series_url)
+    list_streams([], series, series_url)
 
 
 def list_streams(listing, streams, offset_url):
@@ -155,6 +208,8 @@ def list_streams(listing, streams, offset_url):
         context_menu = []
         list_item = None
         unplayable = False
+        unplayable_marker_category = '[COLOR ' + get_color('unplayableColor') + ']!!![/COLOR] '
+        unplayable_marker_drm = '[COLOR ' + get_color('unplayableColor') + ']!-![/COLOR] '
         # Create a list item with a text label and a thumbnail image.
         if 'subject' in stream:
             # Check if the stream is included in any of the unplayable categories
@@ -176,8 +231,8 @@ def list_streams(listing, streams, offset_url):
         for language_code in get_language_codes():
             if language_code in stream['title']:
                 if unplayable:
-                    list_item = xbmcgui.ListItem(label='[COLOR ' + get_color('unplayableColor') + ']!!![/COLOR] ' +
-                                                       str(stream['title'][language_code].encode('utf-8')) + ' ')
+                    list_item = xbmcgui.ListItem(
+                        label=unplayable_marker_category + str(stream['title'][language_code].encode('utf-8')) + ' ')
                 else:
                     list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
                 break
@@ -242,6 +297,10 @@ def list_streams(listing, streams, offset_url):
                 if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
                     # We need to skip publications that can only be seen in Finland
                     continue
+                if _addon.getSetting("showUnplayable") == "true":
+                    content_protection_id = publication["media"]["contentProtection"][0]["id"]
+                    if content_protection_id == '22-2' or content_protection_id == '22-3':
+                        list_item.setLabel('{0}{1}'.format(unplayable_marker_drm, list_item.getLabel()))
                 found_current_publication = True
                 if 'startTime' in publication and 'endTime' in publication:
                     light_tag_open = ''
@@ -320,36 +379,29 @@ def play_stream(path):
     :param path: stream id
     :return: None
     """
-    url = "https://external.api.yle.fi/v1/programs/items/" + path + ".json?app_id=" + get_app_id() + \
-          "&app_key=" + get_app_key()
+    data = get_item(path)
     report_url = None
-    data = get_json(url)['data']
     subtitle_list = []
     for publication in data['publicationEvent']:
         if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
             log("Found correct publication, media id: " + publication['media']['id'])
+            media_id = publication['media']['id']
+            report_url = get_report_url(path, media_id)
             protocol = 'HLS'
-            if publication['media']['type'] == 'AudioObject':
+            media_is_audio = publication['media']['type'] == 'AudioObject'
+            if media_is_audio:
                 protocol = 'PMD'
-            url = "https://external.api.yle.fi/v1/media/playouts.json?" \
-                  "program_id=" + path + \
-                  "&media_id=" + publication['media']['id'] + \
-                  "&protocol=" + protocol + \
-                  "&app_id=" + get_app_id() + \
-                  "&app_key=" + get_app_key()
-            report_url = "https://external.api.yle.fi/v1/tracking/streamstart?program_id={0}&media_id={1}&app_id={2}&" \
-                         "app_key={3}".format(path, publication['media']['id'], get_app_id(), get_app_key())
-            playout_data = get_json(url)
-            encrypted_url = playout_data['data'][0]['url']
-            subtitles = playout_data['data'][0]['subtitles']
+            playout_data = get_playout(path, media_id, protocol)
+            encrypted_url = playout_data[0]['url']
+            subtitles = playout_data[0]['subtitles']
             for subtitle in subtitles:
                 subtitle_list.append(subtitle['uri'])
             path = decrypt_url(encrypted_url)
+            log("decrypted path: " + path)
+            if int(_addon.getSetting("maxResolution")) > 0 and not media_is_audio:
+                path = get_resolution_specific_url(path)
+                log("modified path: " + path)
             break
-    log("decrypted path: " + path)
-    if int(_addon.getSetting("maxResolution")) > 0:
-        path = get_resolution_specific_url(path)
-        log("modified path: " + path)
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
     play_item.setSubtitles(subtitle_list)
@@ -464,21 +516,17 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
 
         search_type, query = search_string.split(':', 1)
         if search_type == 'free':
-            result = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
-                              "&availability=ondemand{3}&app_id={4}&app_key={5}"
-                              .format(query, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
+            result = get_items(offset, query=query)
             search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
-            list_streams([], result['data'], search_url)
+            list_streams([], result, search_url)
         else:
             result = {'data': []}
             while True:
-                data = get_json("https://external.api.yle.fi/v1/programs/items.json?q={0}&offset={1}&order={2}"
-                                "&availability=ondemand&limit=100{3}&app_id={4}&app_key={5}"
-                                .format(query, offset, get_sort_method(), get_region(), get_app_id(), get_app_key()))
-                for item in data['data']:
+                data = get_items(offset, query=query, limit='100')
+                for item in data:
                     result['data'].append(item)
                 offset += 100
-                if len(data['data']) < 100:
+                if len(data) < 100:
                     break
             log(result)
             list_of_series = {}
@@ -608,17 +656,6 @@ def get_secret_key():
     return secret_key
 
 
-def get_json(url):
-    log(url)
-    response = get_url_response(url)
-    log(response)
-    if response is None or response == '':
-        raise ValueError('Request "{0}" returned an empty response.'.format(url))
-    data = json.loads(response.read())
-    log(data)
-    return data
-
-
 def get_url_response(url):
     try:
         return urllib.urlopen(url)
@@ -691,20 +728,6 @@ def get_sort_method():
         raise ValueError('Unknown sort method {0}'.format(sort_method))
 
     return '{0}:{1}'.format(sort_method, asc_or_desc)
-
-
-def get_region():
-    if _addon.getSetting("inFinland") == "true":
-        return ''
-    else:
-        return '&region=world'
-
-
-def get_media_type():
-    if _addon.getSetting("showClips") == "true":
-        return ''
-    else:
-        return '&type=program'
 
 
 def get_color(setting):
@@ -806,7 +829,7 @@ def router(param_string):
             offset = int(params['offset'])
         if params['action'] == 'listing':
             # Display the list of streams in a provided category.
-            streams = get_streams(params['category'], offset)
+            streams = get_items(offset, category=params['category'])
             url = '{0}?action=listing&category={1}&offset={2}'.format(_url, params['category'], (offset + 25))
             sub_categories = []
             if offset == 0:
