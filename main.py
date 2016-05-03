@@ -117,7 +117,7 @@ def get_item(program_id):
     :param program_id: Unique ID of the item
     :return: json data of the item
     """
-    return get_areena_api_json_data('programs/items', '{}.json'.format(program_id), [])
+    return get_areena_api_json_data('programs/items', '{0}.json'.format(program_id), [])
 
 
 def get_playout(program_id, media_id, protocol):

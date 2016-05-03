@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.areena"
-version="2.2.9"
+version="2.2.10"
 name="Areena API plugin"
 provider-name="Toni Lappalainen">
 <requires>
