@@ -278,3 +278,7 @@ msgstr "Ohjelman nimen väri"
 msgctxt "#32066"
 msgid "Random UI colors"
 msgstr "Käytä satunnaisia värejä"
+
+msgctxt "#32067"
+msgid "Live TV"
+msgstr ""

@@ -278,3 +278,7 @@ msgstr ""
 msgctxt "#32066"
 msgid "Random UI colors"
 msgstr ""
+
+msgctxt "#32067"
+msgid "Live TV"
+msgstr ""

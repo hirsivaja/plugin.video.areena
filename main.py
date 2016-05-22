@@ -27,6 +27,11 @@ _addon = xbmcaddon.Addon(id=_addonid)
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
 _unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
 
+_yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8'
+_yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8'
+_yle_fem_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemfihls_1@103185/master.m3u8'
+_yle_teema_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemahls_1@103187/master.m3u8'
+
 
 def log(txt, log_level=xbmc.LOGDEBUG):
     """
@@ -456,6 +461,31 @@ def get_resolution_specific_url(path):
     raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
 
 
+def live_tv_channels(path=None):
+    if not path:
+        listing = []
+        yle_1 = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TV1'))
+        yle_1_url = '{0}?action=live&path={1}'.format(_url, _yle_tv1_live_url)
+        yle_1.setProperty('IsPlayable', 'true')
+        listing.append((yle_1_url, yle_1, False))
+        yle_2 = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TV2'))
+        yle_2_url = '{0}?action=live&path={1}'.format(_url, _yle_tv2_live_url)
+        yle_2.setProperty('IsPlayable', 'true')
+        listing.append((yle_2_url, yle_2, False))
+        yle_fem = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM'))
+        yle_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_live_url)
+        yle_fem.setProperty('IsPlayable', 'true')
+        listing.append((yle_fem_url, yle_fem, False))
+        yle_teema = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TEEMA'))
+        yle_teema_url = '{0}?action=live&path={1}'.format(_url, _yle_teema_live_url)
+        yle_teema.setProperty('IsPlayable', 'true')
+        listing.append((yle_teema_url, yle_teema, False))
+        xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+        xbmcplugin.endOfDirectory(_handle)
+    else:
+        xbmcplugin.setResolvedUrl(_handle, True, listitem=xbmcgui.ListItem(path=path))
+
+
 def search(search_string=None, offset=0, clear_search=False, remove_string=None):
     """
     Manage the search view.
@@ -770,6 +800,10 @@ def show_menu():
         get_color('menuItemColor'), get_translation(32031)))
     tv_url = '{0}?action=categories&base=5-130'.format(_url)
     listing.append((tv_url, tv_list_item, True))
+    live_tv_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), get_translation(32067)))
+    live_tv_url = '{0}?action=live'.format(_url)
+    listing.append((live_tv_url, live_tv_list_item, True))
     radio_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
         get_color('menuItemColor'), get_translation(32032)))
     radio_url = '{0}?action=categories&base=5-200'.format(_url)
@@ -872,6 +906,11 @@ def router(param_string):
         elif params['action'] == 'categories':
             base_category = params['base']
             list_categories(base_category)
+        elif params['action'] == 'live':
+            path = None
+            if 'path' in params:
+                path = params['path']
+            live_tv_channels(path)
         elif params['action'] == 'settings':
             _addon.openSettings()
         else:
