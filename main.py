@@ -29,7 +29,8 @@ _unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
 
 _yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8'
 _yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8'
-_yle_fem_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemfihls_1@103185/master.m3u8'
+_yle_fem_fi_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemfihls_1@103185/master.m3u8'
+_yle_fem_se_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemsehls_1@103186/master.m3u8'
 _yle_teema_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemahls_1@103187/master.m3u8'
 
 
@@ -472,10 +473,14 @@ def live_tv_channels(path=None):
         yle_2_url = '{0}?action=live&path={1}'.format(_url, _yle_tv2_live_url)
         yle_2.setProperty('IsPlayable', 'true')
         listing.append((yle_2_url, yle_2, False))
-        yle_fem = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM'))
-        yle_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_live_url)
+        yle_fem = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM (FI)'))
+        yle_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_fi_live_url)
         yle_fem.setProperty('IsPlayable', 'true')
         listing.append((yle_fem_url, yle_fem, False))
+        yle_fem_se = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM (SV)'))
+        yle_fem_se_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_se_live_url)
+        yle_fem_se.setProperty('IsPlayable', 'true')
+        listing.append((yle_fem_se_url, yle_fem_se, False))
         yle_teema = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TEEMA'))
         yle_teema_url = '{0}?action=live&path={1}'.format(_url, _yle_teema_live_url)
         yle_teema.setProperty('IsPlayable', 'true')
