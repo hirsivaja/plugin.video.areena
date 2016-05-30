@@ -193,6 +193,144 @@ def list_sub_categories(base_category):
     return listing
 
 
+def list_categories_with_series(base_category, offset):
+    listing = []
+    if offset == 0:
+        listing = list_sub_categories_with_series(base_category)
+    if base_category != '0':
+        series_for_the_category = list_series_from_category(base_category, offset)
+        listing.extend(series_for_the_category)
+        if len(series_for_the_category) > 24:
+            list_item = xbmcgui.ListItem(label=get_translation(32008))
+            url = '{0}?action=categories_with_series&base={1}&offset={2}'.format(_url, base_category, offset + 25)
+            listing.append((url, list_item, True))
+    xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def list_sub_categories_with_series(base_category):
+    listing = []
+    if base_category == '0':
+        list_item = xbmcgui.ListItem(label='Urheilu')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-21')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Historia')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-24')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Musiikki')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-27')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Luonto')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-28')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Tiede')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-29')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Elokuvat')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-30')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Uutiset')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-33')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Sarjat')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-34')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Huumori')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-35')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Dokumentit')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-36')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Kulttuuri')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-37')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Ajankohtaisohjelmat')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-44')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Fakta')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-79')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Nuoret')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-83')
+        listing.append((url, list_item, True))
+    elif base_category == '30-21':
+        list_item = xbmcgui.ListItem(label='Jääkiekko')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-145')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Jalkapallo')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-146')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Kuntoilu')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-244')
+        listing.append((url, list_item, True))
+    elif base_category == '30-28':
+        list_item = xbmcgui.ListItem(label='Miljoona linnunpönttöä')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-153')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Puoli seiskan parhaat luontoklipit')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-238')
+        listing.append((url, list_item, True))
+    elif base_category == '30-34':
+        list_item = xbmcgui.ListItem(label='Ulkomaiset sarjat')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-97')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Kotimaiset sarjat')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-98')
+        listing.append((url, list_item, True))
+        list_item = xbmcgui.ListItem(label='Jännitys')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-200')
+        listing.append((url, list_item, True))
+    elif base_category == '30-37':
+        list_item = xbmcgui.ListItem(label='Klassinen musiikki')
+        url = '{0}?action=categories_with_series&base={1}&offset=0'.format(_url, '30-240')
+        listing.append((url, list_item, True))
+    else:
+        pass
+    return listing
+
+
+def list_series_from_category(category, offset):
+    listing = []
+    app_id, app_key = get_app_id_and_app_key()
+    url = 'https://areena.api.yle.fi/v1/ui/packages/{0}/content?app_id={1}&app_key={2}&o=ao&language=fi&v=1' \
+          '&offset={3}&limit=25'.format(category, app_id, app_key, offset)
+    log(url)
+    response = get_url_response(url)
+    log(response)
+    if response is None or response == '':
+        raise ValueError('Request "{0}" returned an empty response.'.format(url))
+    data = json.loads(response.read())
+    log(data)
+    for series in data['data']:
+        series_label = series['title']
+        series_id = series['pointer']['uri'].replace('yleareena://items/', '')
+        item_type = series['pointer']['type']
+        episode_count = ''
+        clip_count = ''
+        for label in series['labels']:
+            if label['type'] == 'availableEpisodes':
+                episode_count = label['raw']
+            if label['type'] == 'availableClips':
+                clip_count = label['raw']
+        episode_count = '{0} episode{1}'.format(
+            episode_count, '' if episode_count == '1' else 's') if episode_count and episode_count != '0' else ''
+        clip_count = '{0} clip{1}'.format(
+            clip_count, '' if clip_count == '1' else 's') if clip_count and clip_count != '0' else ''
+        list_item = xbmcgui.ListItem(label='{0}   {1}{2}{3}{4}{5}'.format(
+            series_label, '[' if episode_count or clip_count else '',
+            episode_count, ' and ' if episode_count and clip_count else '',
+            clip_count, ']' if episode_count or clip_count else ''))
+        if item_type == 'program':
+            url = '{0}?action=play&stream={1}'.format(_url, series_id)
+            list_item.setProperty('IsPlayable', 'true')
+            listing.append((url, list_item, False))
+        else:
+            url = '{0}?action=series&series_id={1}&offset=0'.format(_url, series_id)
+            listing.append((url, list_item, True))
+    return listing
+
+
 def list_series(series_id, offset):
     series = get_items(offset, series=series_id)
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
@@ -678,6 +816,22 @@ def get_app_key():
     return app_key
 
 
+def get_app_id_and_app_key():
+    tv = "http://areena.yle.fi/tv"
+    response = get_url_response(tv).read()
+    start = response.index('window.ohjelmat')
+    start = response.index('applicationId:', start)
+    start = response.index('"', start) + 1
+    end = response.index('"', start)
+    application_id = response[start:end]
+    start = response.index('window.ohjelmat')
+    start = response.index('applicationKey:', start)
+    start = response.index('"', start) + 1
+    end = response.index('"', start)
+    application_key = response[start:end]
+    return application_id, application_key
+
+
 def get_secret_key():
     secret_key = _addon.getSetting("secretKey")
     if secret_key == '':
@@ -805,6 +959,10 @@ def show_menu():
         get_color('menuItemColor'), get_translation(32031)))
     tv_url = '{0}?action=categories&base=5-130'.format(_url)
     listing.append((tv_url, tv_list_item, True))
+    tv_list_series_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+        get_color('menuItemColor'), 'List TV series by category'))
+    tv_series_url = '{0}?action=categories_with_series&base=0&offset=0'.format(_url)
+    listing.append((tv_series_url, tv_list_series_item, True))
     live_tv_list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
         get_color('menuItemColor'), get_translation(32067)))
     live_tv_url = '{0}?action=live'.format(_url)
@@ -911,6 +1069,9 @@ def router(param_string):
         elif params['action'] == 'categories':
             base_category = params['base']
             list_categories(base_category)
+        elif params['action'] == 'categories_with_series':
+            base_category = params['base']
+            list_categories_with_series(base_category, offset)
         elif params['action'] == 'live':
             path = None
             if 'path' in params:
