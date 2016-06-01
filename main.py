@@ -303,7 +303,7 @@ def list_series_from_category(category, offset):
     data = json.loads(response.read())
     log(data)
     for series in data['data']:
-        series_label = series['title']
+        series_label = series['title'].encode('utf-8')
         series_id = series['pointer']['uri'].replace('yleareena://items/', '')
         item_type = series['pointer']['type']
         episode_count = ''
