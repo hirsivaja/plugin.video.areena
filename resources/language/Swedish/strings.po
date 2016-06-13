@@ -21,7 +21,7 @@ msgstr "Inställningar"
 
 msgctxt "#32002"
 msgid "Enable debug to kodi.log"
-msgstr "Skriv till kodi.log"
+msgstr "Skriv debuginfo till kodi.log"
 
 msgctxt "#32003"
 msgid "Default language"
@@ -45,27 +45,27 @@ msgstr "Sök"
 
 msgctxt "#32008"
 msgid "Next page"
-msgstr "Nästa sidan"
+msgstr "Nästa sida"
 
 msgctxt "#32009"
 msgid "New free search"
-msgstr "Ny fri sök"
+msgstr "Ny fri sökning"
 
 msgctxt "#32010"
 msgid "Clear searches"
-msgstr "Klara sökande"
+msgstr "Glöm sökningar"
 
 msgctxt "#32011"
 msgid "Sort type"
-msgstr "Sorteringssätt "
+msgstr "Sorteringssätt"
 
 msgctxt "#32012"
 msgid "Ascending"
-msgstr "Uppgående"
+msgstr "Stigande ordning"
 
 msgctxt "#32013"
 msgid "Descending"
-msgstr "Nergående"
+msgstr "Fallande ordning"
 
 msgctxt "#32014"
 msgid "Default sort method"
@@ -73,75 +73,75 @@ msgstr "Standardsorteringssätt"
 
 msgctxt "#32015"
 msgid "Most popular: 6h"
-msgstr "Mest populär: 6h"
+msgstr "Mest populära: 6h"
 
 msgctxt "#32016"
 msgid "Most popular: 24h"
-msgstr "Mest populär: 24h"
+msgstr "Mest populära: 24h"
 
 msgctxt "#32017"
 msgid "Most popular: week"
-msgstr "Mest populär: veckan"
+msgstr "Mest populära: senaste veckan"
 
 msgctxt "#32018"
 msgid "Most popular: month"
-msgstr "Mest populär: månaden"
+msgstr "Mest populära: senaste månaden"
 
 msgctxt "#32019"
 msgid "Time when viewing starts"
-msgstr "När programmet tillgänglig"
+msgstr "Senast publicerade"
 
 msgctxt "#32020"
 msgid "Time when viewing ends"
-msgstr "När programmet lämnas"
+msgstr "Utgående"
 
 msgctxt "#32021"
 msgid "Time when updated"
-msgstr "När programmet uppdaterad"
+msgstr "Senast uppdaterade"
 
 msgctxt "#32022"
 msgid "New series search"
-msgstr "Ny serie sök"
+msgstr "Ny seriesökning"
 
 msgctxt "#32023"
 msgid "Free search: "
-msgstr "Fri sök: "
+msgstr "Fri sökning: "
 
 msgctxt "#32024"
 msgid "Series search: "
-msgstr "Serie sök: "
+msgstr "Seriesökning: "
 
 msgctxt "#32025"
 msgid "Favourites"
-msgstr "Favoriterna"
+msgstr "Favoriter"
 
 msgctxt "#32026"
 msgid "Add item to favourites"
-msgstr "Tillsätta till favoriterna"
+msgstr "Sätt till i favoriter"
 
 msgctxt "#32027"
 msgid "Add series to favourites"
-msgstr "Tillsätta serie till favoriterna"
+msgstr "Sätt till serie i favoriter"
 
 msgctxt "#32028"
 msgid "Remove from favourites"
-msgstr "Ta bort från favoriterna"
+msgstr "Ta bort från favoriter"
 
 msgctxt "#32029"
 msgid "Remove search item"
-msgstr "Ta bort sök"
+msgstr "Ta bort sökning"
 
 msgctxt "#32030"
 msgid "Are you in Finland?"
-msgstr "Är du inom Finland?"
+msgstr "Är du i Finland?"
 
 msgctxt "#32031"
 msgid "TV programmes"
-msgstr "TV program"
+msgstr "TV-program"
 
 msgctxt "#32032"
 msgid "Radio programmes"
-msgstr "Radio program"
+msgstr "Radioprogram"
 
 msgctxt "#32033"
 msgid "Your app_id"
@@ -149,27 +149,27 @@ msgstr "Ditt app_id"
 
 msgctxt "#32034"
 msgid "Your app_key"
-msgstr "Ditt app_key"
+msgstr "Din app_key"
 
 msgctxt "#32035"
 msgid "Your secret key"
-msgstr "Ditt secret_key"
+msgstr "Din secret_key"
 
 msgctxt "#32036"
 msgid "API keys"
-msgstr "API nycklar"
+msgstr "API-nycklar"
 
 msgctxt "#32037"
 msgid "Get API keys from https://tunnus.yle.fi/api-avaimet"
-msgstr "Ge ditt API nycklar från https://tunnus.yle.fi/api-avaimet"
+msgstr "Fyll i dina API nycklar från https://tunnus.yle.fi/api-avaimet"
 
 msgctxt "#32038"
 msgid "Missing API keys. Register free at https://tunnus.yle.fi"
-msgstr "Saknas API-nyckel. Registrera gratis på https://tunnus.yle.fi"
+msgstr "API-nycklarna saknas. Registrera dig gratis på https://tunnus.yle.fi"
 
 msgctxt "#32039"
 msgid "After registering click here to add the keys in the settings menu."
-msgstr "Efter du har registrerad klicka här för att tillsätta nycklar."
+msgstr "Efter registrering, klicka här för att sätta till nycklarna."
 
 msgctxt "#32040"
 msgid "Settings"
@@ -177,23 +177,23 @@ msgstr "Inställningar"
 
 msgctxt "#32041"
 msgid "Show clips"
-msgstr "Visa clips"
+msgstr "Visa videoklipp"
 
 msgctxt "#32042"
 msgid "Show extra info about streams"
-msgstr "Visa extra program information"
+msgstr "Visa extra programinformation"
 
 msgctxt "#32043"
 msgid "Advanced"
-msgstr "Avancerad"
+msgstr "Avancerat"
 
 msgctxt "#32044"
 msgid "Show (probably) unplayable items ([COLOR red]!!![/COLOR])"
-msgstr "Visa ospelbar program ([COLOR red]!!![/COLOR])"
+msgstr "Visa (troligen) ospelbara program ([COLOR red]!!![/COLOR])"
 
 msgctxt "#32045"
 msgid "Maximum resolution"
-msgstr "Maximum resolution"
+msgstr "Högsta resolution"
 
 msgctxt "#32046"
 msgid "Automatic"
@@ -201,7 +201,7 @@ msgstr "Automatisk"
 
 msgctxt "#32047"
 msgid "Audio only"
-msgstr "Ljud bara"
+msgstr "Endast ljud"
 
 msgctxt "#32048"
 msgid "SD-144"
@@ -229,7 +229,7 @@ msgstr ""
 
 msgctxt "#32054"
 msgid "until"
-msgstr "till"
+msgstr "fram till"
 
 msgctxt "#32055"
 msgid "d remaining"
@@ -237,48 +237,48 @@ msgstr "d kvar"
 
 msgctxt "#32056"
 msgid "Do not show subtitles if audio in the default language is available"
-msgstr "Inte visa undertexter om ljud med väljat språk är befintlig"
+msgstr "Visa inte undertexter om ljud med valt språk finns tillgängligt"
 
 msgctxt "#32057"
 msgid "Make program titles bold"
-msgstr ""
+msgstr "Fet stil på programtitlar"
 
 msgctxt "#32058"
 msgid "UI settings"
-msgstr ""
+msgstr "Gränssnittsinställningar"
 
 msgctxt "#32059"
 msgid "Program date color"
-msgstr ""
+msgstr "Färg på datumtext"
 
 msgctxt "#32060"
 msgid "Free search item color"
-msgstr ""
+msgstr "Färg på fri sökning"
 
 msgctxt "#32061"
 msgid "Series search item color"
-msgstr ""
+msgstr "Färg på seriesökning"
 
 msgctxt "#32062"
 msgid "Unplayable item color"
-msgstr ""
+msgstr "Färg på ospelbara program och kategorier"
 
 msgctxt "#32063"
 msgid "For the list of available colors see: [CR]http://forum.kodi.tv/showthread.php?tid=210837"
-msgstr ""
+msgstr "För en lista på tillgängliga färger, se [CR]http://forum.kodi.tv/showthread.php?tid=210837"
 
 msgctxt "#32064"
 msgid "Menu item color"
-msgstr ""
+msgstr "Färg på menyer"
 
 msgctxt "#32065"
 msgid "Title color"
-msgstr ""
+msgstr "Färg på rubriker"
 
 msgctxt "#32066"
 msgid "Random UI colors"
-msgstr ""
+msgstr "Använd slumpmässiga färger för gränssnittet"
 
 msgctxt "#32067"
 msgid "Live TV"
-msgstr ""
+msgstr "TV-kanaler"
