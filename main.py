@@ -257,7 +257,7 @@ def list_streams(listing, streams, offset_url):
         if 'promotionTitle' in stream:
             for language_code in get_language_codes():
                 if language_code in stream['promotionTitle']:
-                    info_labels['tagline'] = stream['description'][language_code].encode('utf-8')
+                    info_labels['tagline'] = stream['promotionTitle'][language_code].encode('utf-8')
                     break
         if 'duration' in stream:
             duration = get_timedelta_from_duration(stream['duration'])
