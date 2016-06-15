@@ -454,10 +454,17 @@ def get_resolution_specific_url(path):
     max_resolution = int(_addon.getSetting("maxResolution")) - 2
     if max_resolution < 0:
         return path.replace('master.m3u8', 'index_0_a.m3u8')
+
+    split_path = path.split('?', 1)
+    if len(split_path) > 1:
+        path_part2 = split_path[1]
+    else:
+        path_part2 = 'null'
+
     for resolution in xrange(max_resolution, 0, -1):
         for resolution_url in resolution_urls:
             if 'index_{0}_av.m3u8'.format(resolution) in resolution_url:
-                path = '{0}?{1}'.format(resolution_url.split('?', 1)[0], path.split('?', 1)[1])
+                path = '{0}?{1}'.format(resolution_url.split('?', 1)[0], path_part2)
                 return path
     raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
 
