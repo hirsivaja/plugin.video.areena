@@ -454,7 +454,7 @@ def get_resolution_specific_url(path):
     max_resolution = int(_addon.getSetting("maxResolution")) - 2
     if max_resolution < 0:
         return path.replace('master.m3u8', 'index_0_a.m3u8')
-    for resolution in xrange(max_resolution, 0, -1):
+    for resolution in xrange(max_resolution, -1, -1):
         for res_url in resolution_urls:
             if 'index_{0}_av.m3u8'.format(resolution) in res_url:
                 return '{0}?{1}'.format(res_url.split('?', 1)[0], path.split('?', 1)[1] if '?' in path else 'null')
