@@ -455,10 +455,9 @@ def get_resolution_specific_url(path):
     if max_resolution < 0:
         return path.replace('master.m3u8', 'index_0_a.m3u8')
     for resolution in xrange(max_resolution, 0, -1):
-        for resolution_url in resolution_urls:
-            if 'index_{0}_av.m3u8'.format(resolution) in resolution_url:
-                path = '{0}?{1}'.format(resolution_url.split('?', 1)[0], path.split('?', 1)[1])
-                return path
+        for res_url in resolution_urls:
+            if 'index_{0}_av.m3u8'.format(resolution) in res_url:
+                return '{0}?{1}'.format(res_url.split('?', 1)[0], path.split('?', 1)[1] if '?' in path else 'null')
     raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
 
 
@@ -699,8 +698,10 @@ def get_url_response(url):
             # The certificate was not found. Let's try without verification.
             import ssl
             return urllib.urlopen(url, context=ssl._create_unverified_context())
-        else:
-            raise error
+        elif 'http error' in error.message:
+            log('The url [{0}] could not be opened! Error: {1}'.format(url, error.message), xbmc.LOGERROR)
+            log('Is the url valid and is the site reachable?', xbmc.LOGERROR)
+        raise error
 
 
 def get_timedelta_from_duration(duration):
