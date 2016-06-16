@@ -571,7 +571,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
                         for language_code in get_language_codes():
                             if language_code in item['partOfSeries']['title']:
                                 title = item['partOfSeries']['title'][language_code]
-                                if query.lower() in title.lower():
+                                if query.decode('utf-8').lower() in title.lower():
                                     list_of_series[item['partOfSeries']['id']] = \
                                         item['partOfSeries']['title'][language_code]
                                 break
