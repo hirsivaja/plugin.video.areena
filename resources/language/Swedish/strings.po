@@ -282,3 +282,7 @@ msgstr "Använd slumpmässiga färger för gränssnittet"
 msgctxt "#32067"
 msgid "Live TV"
 msgstr "TV-kanaler"
+
+msgctxt "#32068"
+msgid "Use HTTPS"
+msgstr "Använda HTTPS"

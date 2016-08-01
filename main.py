@@ -73,7 +73,10 @@ def get_areena_api_json_data(folder_name, json_name, parameters):
 def get_areena_api_url(folder_name, item_name, parameters):
     parameters.append('app_id=' + get_app_id())
     parameters.append('app_key=' + get_app_key())
-    url = 'https://external.api.yle.fi/v1/{0}/{1}?{2}'.format(folder_name, item_name, '&'.join(parameters))
+    protocol = 'https'
+    if _addon.getSetting("https") == "false":
+        protocol = 'http'
+    url = '{0}://external.api.yle.fi/v1/{1}/{2}?{3}'.format(protocol, folder_name, item_name, '&'.join(parameters))
     log(url)
     return url
 

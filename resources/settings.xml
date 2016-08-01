@@ -30,5 +30,6 @@
         <setting id="showUnplayable" type="bool" label="32044" default="false" />
         <setting id="noSubtitlesForDefaultLangAudio" type="bool" label="32056" default="false" />
         <setting id="maxResolution" type="enum" label="32045" lvalues="32046|32047|32048|32049|32050|32051|32052|32053" default="0" />
+        <setting id="https" type="bool" label="32068" default="true" />
     </category>
 </settings>

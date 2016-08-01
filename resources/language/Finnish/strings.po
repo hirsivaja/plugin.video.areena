@@ -282,3 +282,7 @@ msgstr "Käytä satunnaisia värejä"
 msgctxt "#32067"
 msgid "Live TV"
 msgstr ""
+
+msgctxt "#32068"
+msgid "Use HTTPS"
+msgstr "Käytä HTTPS-yhteyttä"
