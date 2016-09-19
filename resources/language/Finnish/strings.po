@@ -286,3 +286,15 @@ msgstr ""
 msgctxt "#32068"
 msgid "Use HTTPS"
 msgstr "Käytä HTTPS-yhteyttä"
+
+msgctxt "#32069"
+msgid "Move to folder"
+msgstr "Siirrä hakemistoon"
+
+msgctxt "#32070"
+msgid "Move to parent folder"
+msgstr "Siirrä edeltävään hakemistoon"
+
+msgctxt "#32071"
+msgid "Add folder"
+msgstr "Lisää hakemisto"

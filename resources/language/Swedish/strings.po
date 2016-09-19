@@ -286,3 +286,15 @@ msgstr "TV-kanaler"
 msgctxt "#32068"
 msgid "Use HTTPS"
 msgstr "Använda HTTPS"
+
+msgctxt "#32069"
+msgid "Move to folder"
+msgstr "Flytta till mapp"
+
+msgctxt "#32070"
+msgid "Move to parent folder"
+msgstr "Flytta till överordnade mapp"
+
+msgctxt "#32071"
+msgid "Add folder"
+msgstr "Skapa mapp"

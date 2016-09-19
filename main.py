@@ -32,6 +32,8 @@ _yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3
 _yle_fem_fi_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemfihls_1@103185/master.m3u8'
 _yle_fem_se_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemsehls_1@103186/master.m3u8'
 _yle_teema_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemahls_1@103187/master.m3u8'
+_image_cdn_url = 'http://images.cdn.yle.fi/image/upload'
+_image_transformation = 'w_240,h_240,c_fit'
 
 
 def log(txt, log_level=xbmc.LOGDEBUG):
@@ -202,6 +204,20 @@ def list_series(series_id, offset):
     list_streams([], series, series_url)
 
 
+def get_image_url_for_series(series_id):
+    series_items = get_items(0, series=series_id, limit=1)
+    if series_items:
+        series_item = series_items[0]
+        if 'partOfSeries' in series_item:
+            if 'available' in series_item['partOfSeries']['image']:
+                if series_item['partOfSeries']['image']['available']:
+                    image_url = '{0}/{1}/{2}.{3}'.format(
+                        _image_cdn_url, _image_transformation, series_item['partOfSeries']['image']['id'], 'png')
+                    return image_url
+    log('Could not find ' + series_id, xbmc.LOGERROR)
+    return None
+
+
 def list_streams(listing, streams, offset_url):
     """
     Create the list of playable streams in the Kodi interface.
@@ -250,8 +266,8 @@ def list_streams(listing, streams, offset_url):
             break
         if 'available' in stream['image']:
             if stream['image']['available']:
-                image_url = 'http://images.cdn.yle.fi/image/upload/w_240,h_240,c_fit/{0}.png'.format(
-                    stream['image']['id'])
+                image_url = '{0}/{1}/{2}.{3}'.format(
+                    _image_cdn_url, _image_transformation, stream['image']['id'], 'png')
                 list_item.setThumbnailImage(image_url)
         for language_code in get_language_codes():
             if language_code in stream['description']:
@@ -581,6 +597,9 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
             for key in list_of_series:
                 series_list_item = xbmcgui.ListItem(label=list_of_series[key])
                 series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, key, 0)
+                image_url = get_image_url_for_series(key)
+                if image_url:
+                    series_list_item.setThumbnailImage(image_url)
                 listing.append((series_url, series_list_item, True))
             xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     xbmcplugin.endOfDirectory(_handle)
@@ -600,45 +619,153 @@ def new_search(search_type):
     xbmcplugin.endOfDirectory(_handle)
 
 
-def favourites():
+def favourites(favourites_folder="favourites"):
     listing = []
-    items = _addon.getSetting("favourites").splitlines()
+    items = _addon.getSetting(favourites_folder).splitlines()
+    items = sort_favourites(items)
     for favourite in items:
         fav_type, fav_id, fav_label = favourite.split(':', 2)
         favourite_list_item = xbmcgui.ListItem(label=fav_label)
         if fav_type == 'series':
             favourite_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, fav_id, 0)
+            image_url = get_image_url_for_series(fav_id)
+            if image_url:
+                favourite_list_item.setThumbnailImage(image_url)
             is_folder = True
         elif fav_type == 'episode':
             favourite_url = '{0}?action=play&stream={1}'.format(_url, fav_id)
             favourite_list_item.setProperty('IsPlayable', 'true')
+            image_url = '{0}/{1}/13-{2}.{3}'.format(_image_cdn_url, _image_transformation, fav_id, 'png')
+            favourite_list_item.setThumbnailImage(image_url)
             is_folder = False
+        elif fav_type == 'folder':
+            favourite_list_item.setLabel('[B]' + fav_label.replace('favFolder', '').upper() + '[/B]')
+            favourite_url = '{0}?action=favourites&folder={1}'.format(_url, fav_label)
+            is_folder = True
         else:
             raise ValueError("Unknown favourites type '{0}'".format(fav_type))
         context_menu = []
-        remove_favourite_context_menu_item = \
-            (get_translation(32028), 'ActivateWindow(Videos,{0}?action=remove_favourite&type={1}&id={2}&label={3})'.
-             format(_url, fav_type, fav_id, fav_label))
+        remove_favourite_context_menu_item = (
+            get_translation(32028),
+            'ActivateWindow(Videos,{0}?action=remove_favourite&type={1}&id={2}&label={3}&folder={4})'.
+            format(_url, fav_type, fav_id, fav_label, favourites_folder))
         context_menu.append(remove_favourite_context_menu_item)
+        for possible_folder in items:
+            folder_fav_type, folder_fav_id, folder_fav_label = possible_folder.split(':', 2)
+            if folder_fav_type == 'folder' and fav_label != folder_fav_label:
+                move_favourite_context_menu_item = (
+                    '{0} {1}'.format(get_translation(32069), folder_fav_label.replace('favFolder', '').upper()),
+                    'ActivateWindow(Videos,{0}?action=move_favourite&type={1}&id={2}&label={3}&from={4}&to={5})'.
+                    format(_url, fav_type, fav_id, fav_label, favourites_folder, folder_fav_label))
+                context_menu.append(move_favourite_context_menu_item)
+        if favourites_folder != 'favourites':
+            move_to_parent_folder_context_menu_item = (
+                get_translation(32070),
+                'ActivateWindow(Videos,{0}?action=move_favourite&type={1}&id={2}&label={3}&from={4}&to={5})'.
+                format(_url, fav_type, fav_id, fav_label, favourites_folder,
+                       get_parent_folder('favourites', favourites_folder)))
+            context_menu.append(move_to_parent_folder_context_menu_item)
         favourite_list_item.addContextMenuItems(context_menu)
         listing.append((favourite_url, favourite_list_item, is_folder))
+    add_folder_list_item = xbmcgui.ListItem(label=get_translation(32071))
+    listing.append(('{0}?action=add_favourites_folder&folder={1}'.format(_url, favourites_folder),
+                    add_folder_list_item, True))
     xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     xbmcplugin.endOfDirectory(_handle)
 
 
-def add_favourite(fav_type, fav_id, fav_label):
-    items = _addon.getSetting("favourites").splitlines()
+def sort_favourites(favourites_list):
+    folders = []
+    series = []
+    items = []
+    sorted_items = []
+    for favourite in favourites_list:
+        fav_type, fav_id, fav_label = favourite.split(':', 2)
+        if fav_type == 'series':
+            series.append(favourite)
+        elif fav_type == 'episode':
+            items.append(favourite)
+        elif fav_type == 'folder':
+            folders.append(favourite)
+    sorted_items.extend(sorted(folders, key=lambda fav: fav.split(':', 2)[2]))
+    sorted_items.extend(sorted(series, key=lambda fav: fav.split(':', 2)[2]))
+    sorted_items.extend(sorted(items, key=lambda fav: fav.split(':', 2)[2]))
+    return sorted_items
+
+
+def add_favourite(fav_type, fav_id, fav_label, fav_folder="favourites"):
+    items = _addon.getSetting(fav_folder).splitlines()
     items.insert(0, '{0}:{1}:{2}'.format(fav_type, fav_id, fav_label))
-    _addon.setSetting("favourites", "\n".join(items))
+    _addon.setSetting(fav_folder, "\n".join(items))
 
 
-def remove_favourite(fav_type, fav_id, fav_label):
-    items = _addon.getSetting("favourites").splitlines()
+def remove_favourite(fav_type, fav_id, fav_label, fav_folder):
+    item_found = False
+    items = _addon.getSetting(fav_folder).splitlines()
     favourite = '{0}:{1}:{2}'.format(fav_type, fav_id, fav_label)
     if favourite in items:
         items.remove(favourite)
-    _addon.setSetting("favourites", "\n".join(items))
-    favourites()
+        if fav_type == 'folder':
+            _addon.setSetting(fav_label, None)
+        item_found = True
+    _addon.setSetting(fav_folder, "\n".join(items))
+    favourites(fav_folder)
+    return item_found
+
+
+def add_favourites_folder(fav_folder):
+    keyboard = xbmc.Keyboard()
+    keyboard.doModal()
+    if keyboard.isConfirmed() and keyboard.getText() != '':
+        folder_name = 'favFolder' + keyboard.getText()
+        if favourite_folder_exists('favourites', folder_name):
+            pass
+        else:
+            _addon.setSetting(folder_name, "")
+            add_favourite('folder', '0', folder_name, fav_folder)
+    xbmcplugin.endOfDirectory(_handle)
+
+
+def favourite_folder_exists(search_folder, target_folder):
+    items = _addon.getSetting(search_folder).splitlines()
+    for favourite in items:
+        fav_type, fav_id, fav_label = favourite.split(':', 2)
+        if fav_type == 'folder':
+            if fav_label.upper() == target_folder.upper():
+                return True
+            else:
+                exists = favourite_folder_exists(fav_label, target_folder)
+                if exists:
+                    return True
+    return False
+
+
+def get_parent_folder(search_folder, target_label):
+    items = _addon.getSetting(search_folder).splitlines()
+    for favourite in items:
+        fav_type, fav_id, fav_label = favourite.split(':', 2)
+        if fav_type == 'folder':
+            if fav_label.upper() == target_label.upper():
+                return search_folder
+            else:
+                parent = get_parent_folder(fav_label, target_label)
+                if parent is not None:
+                    return parent
+        else:
+            if fav_label == target_label:
+                return search_folder
+    return None
+
+
+def move_favourite_to_folder(fav_type, fav_id, fav_label, fav_old_folder, fav_new_folder):
+    items = ''
+    if fav_type == 'folder':
+        items = _addon.getSetting(fav_label)
+    item_found = remove_favourite(fav_type, fav_id, fav_label, fav_old_folder)
+    if item_found:
+        add_favourite(fav_type, fav_id, fav_label, fav_new_folder)
+        if fav_type == 'folder':
+            _addon.setSetting(fav_label, items)
 
 
 def decrypt_url(encrypted_url):
@@ -894,7 +1021,11 @@ def router(param_string):
             # Show search window
             search(search_string=search_string, offset=offset, clear_search=clear_search, remove_string=remove_string)
         elif params['action'] == 'favourites':
-            favourites()
+            if 'folder' in params:
+                favourite_folder = params['folder']
+                favourites(favourite_folder)
+            else:
+                favourites()
         elif params['action'] == 'new_search':
             search_type = params['type']
             # Show search window
@@ -908,7 +1039,18 @@ def router(param_string):
             favourite_type = params['type']
             favourite_id = params['id']
             favourite_label = params['label']
-            remove_favourite(favourite_type, favourite_id, favourite_label)
+            folder = params['folder']
+            remove_favourite(favourite_type, favourite_id, favourite_label, folder)
+        elif params['action'] == 'add_favourites_folder':
+            favourite_folder = params['folder']
+            add_favourites_folder(favourite_folder)
+        elif params['action'] == 'move_favourite':
+            favourite_type = params['type']
+            favourite_id = params['id']
+            favourite_label = params['label']
+            old_folder = params['from']
+            new_folder = params['to']
+            move_favourite_to_folder(favourite_type, favourite_id, favourite_label, old_folder, new_folder)
         elif params['action'] == 'series':
             series_id = params['series_id']
             list_series(series_id, offset)

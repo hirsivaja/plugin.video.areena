@@ -286,3 +286,15 @@ msgstr ""
 msgctxt "#32068"
 msgid "Use HTTPS"
 msgstr ""
+
+msgctxt "#32069"
+msgid "Move to folder"
+msgstr ""
+
+msgctxt "#32070"
+msgid "Move to parent folder"
+msgstr ""
+
+msgctxt "#32071"
+msgid "Add folder"
+msgstr ""
