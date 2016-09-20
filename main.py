@@ -214,7 +214,7 @@ def get_image_url_for_series(series_id):
                     image_url = '{0}/{1}/{2}.{3}'.format(
                         _image_cdn_url, _image_transformation, series_item['partOfSeries']['image']['id'], 'png')
                     return image_url
-    log('Could not find ' + series_id, xbmc.LOGERROR)
+    log('Could not find image URL for series {0}'.format(series_id), xbmc.LOGWARNING)
     return None
 
 
