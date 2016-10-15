@@ -298,3 +298,7 @@ msgstr "Flytta till överordnade mapp"
 msgctxt "#32071"
 msgid "Add folder"
 msgstr "Skapa mapp"
+
+msgctxt "#32072"
+msgid "NOT AVAILABLE"
+msgstr "INTE TILLGÄNGLIG"

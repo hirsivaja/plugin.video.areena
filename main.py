@@ -214,6 +214,8 @@ def get_image_url_for_series(series_id):
                     image_url = '{0}/{1}/{2}.{3}'.format(
                         _image_cdn_url, _image_transformation, series_item['partOfSeries']['image']['id'], 'png')
                     return image_url
+    else:
+        return 'NO_ITEMS'
     log('Could not find image URL for series {0}'.format(series_id), xbmc.LOGWARNING)
     return None
 
@@ -228,153 +230,9 @@ def list_streams(listing, streams, offset_url):
     """
     # Iterate through the streams.
     for stream in streams:
-        info_labels = {}
-        stream_info = {}
-        context_menu = []
-        list_item = None
-        unplayable = False
-        unplayable_marker_category = '[COLOR ' + get_color('unplayableColor') + ']!!![/COLOR] '
-        unplayable_marker_drm = '[COLOR ' + get_color('unplayableColor') + ']!-![/COLOR] '
-        # Create a list item with a text label and a thumbnail image.
-        if 'subject' in stream:
-            # Check if the stream is included in any of the unplayable categories
-            category_id = ''
-            for subject in stream['subject']:
-                if subject['id'] in _unplayableCategories:
-                    unplayable = True
-                    category_id = subject['id']
-                    break
-                if 'broader' in subject:
-                    if subject['broader']['id'] in _unplayableCategories:
-                        unplayable = True
-                        category_id = subject['broader']['id']
-                        break
-            if unplayable:
-                if _addon.getSetting('showUnplayable') == 'false':
-                    log('Stream is unplayable. It is in category: {0}'.format(category_id))
-                    continue
-        for language_code in get_language_codes():
-            if language_code in stream['title']:
-                if unplayable:
-                    list_item = xbmcgui.ListItem(
-                        label=unplayable_marker_category + str(stream['title'][language_code].encode('utf-8')) + ' ')
-                else:
-                    list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
-                break
+        list_item = create_list_item_from_stream(stream)
         if list_item is None:
-            log('no title for stream: {0}'.format(stream['title']), xbmc.LOGWARNING)
-            break
-        if 'available' in stream['image']:
-            if stream['image']['available']:
-                image_url = '{0}/{1}/{2}.{3}'.format(
-                    _image_cdn_url, _image_transformation, stream['image']['id'], 'png')
-                list_item.setThumbnailImage(image_url)
-        for language_code in get_language_codes():
-            if language_code in stream['description']:
-                info_labels['plot'] = stream['description'][language_code].encode('utf-8')
-                break
-        if 'promotionTitle' in stream:
-            for language_code in get_language_codes():
-                if language_code in stream['promotionTitle']:
-                    info_labels['tagline'] = stream['promotionTitle'][language_code].encode('utf-8')
-                    break
-        if 'duration' in stream:
-            duration = get_timedelta_from_duration(stream['duration'])
-            # The total_seconds function was introduced in Python 2.7
-            if duration is not None and 'total_seconds' in dir(duration):
-                info_labels['duration'] = duration.total_seconds()
-                stream_info = {'duration': duration.total_seconds()}
-        if 'partOfSeason' in stream or 'episodeNumber' in stream:
-            season_string = ''
-            episode_string = ''
-            if 'partOfSeason' in stream:
-                if 'seasonNumber' in stream['partOfSeason']:
-                    season_number = stream['partOfSeason']['seasonNumber']
-                    info_labels['season'] = season_number
-                    season_string = 'S{0}'.format(str(season_number))
-            if 'episodeNumber' in stream:
-                episode_number = stream['episodeNumber']
-                info_labels['episode'] = episode_number
-                episode_string = 'E{0}'.format(str(episode_number))
-            list_item.setLabel('{0} - {1}{2}'.format(list_item.getLabel(), season_string, episode_string))
-        if 'itemTitle' in stream:
-            for language_code in get_language_codes():
-                if language_code in stream['itemTitle']:
-                    list_item.setLabel('{0} - {1}'.format(list_item.getLabel(),
-                                                          stream['itemTitle'][language_code].encode('utf-8')))
-                    break
-        if 'partOfSeries' in stream:
-            if 'id' in stream['partOfSeries']:
-                series_title = 'SERIES TITLE NOT FOUND'
-                if 'title' in stream['partOfSeries']:
-                    for language_code in get_language_codes():
-                        if language_code in stream['partOfSeries']['title']:
-                            series_title = stream['partOfSeries']['title'][language_code]
-                            break
-                add_series_favourite_context_menu_item = \
-                    (get_translation(32027),
-                     'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
-                     .format(_url, stream['partOfSeries']['id'], series_title.encode('utf-8')))
-                context_menu.append(add_series_favourite_context_menu_item)
-        found_current_publication = False
-        for publication in stream['publicationEvent']:
-            if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
-                if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
-                    # We need to skip publications that can only be seen in Finland
-                    continue
-                if _addon.getSetting("showUnplayable") == "true":
-                    content_protection_id = publication["media"]["contentProtection"][0]["id"]
-                    if content_protection_id == '22-2' or content_protection_id == '22-3':
-                        list_item.setLabel('{0}{1}'.format(unplayable_marker_drm, list_item.getLabel()))
-                found_current_publication = True
-                if 'startTime' in publication and 'endTime' in publication:
-                    light_tag_open = ''
-                    light_tag_close = ''
-                    bold_tag_open = ''
-                    bold_tag_close = ''
-                    if int(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version').split('.', 1)[0]) > 15:
-                        light_tag_open = '[LIGHT]'
-                        light_tag_close = '[/LIGHT]'
-                    if _addon.getSetting("boldTitles") == "true":
-                        bold_tag_open = '[B]'
-                        bold_tag_close = '[/B]'
-                    if _addon.getSetting('showExtraInfo') == 'true':
-                        list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
-                        out_format = '%d.%m.%Y'
-                        start_time = time.strptime(publication['startTime'].split('+')[0], _yle_time_format)
-                        start_time = time.strftime(out_format, start_time)
-                        end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
-                        end_time = time.strftime(out_format, end_time)
-                        # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B]
-                        # [LIGHT][COLOR grey]1.1.2016 until 1.1.2017[/COLOR][/LIGHT]'
-                        list_item.setLabel('{0}[COLOR {1}]{2}[/COLOR]{3}{4}[COLOR {5}]{6} | {7} {8}[/COLOR]{9}'.
-                                           format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
-                                                  bold_tag_close, light_tag_open, get_color('dateColor'), start_time,
-                                                  get_translation(32054), end_time, light_tag_close))
-                    else:
-                        ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
-                        now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
-                        ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
-                        # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B] |
-                        # [LIGHT][COLOR grey]30 d remaining[/COLOR][/LIGHT]'
-                        list_item.setLabel("{0}[COLOR {1}]{2}[/COLOR]{3} | {4}[COLOR {5}]{6} {7}[/COLOR]{8} ".
-                                           format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
-                                                  bold_tag_close, light_tag_open, get_color('dateColor'), str(ttl),
-                                                  get_translation(32055), light_tag_close))
-                break
-        if not found_current_publication:
-            log("No publication with 'currently': {0}".format(stream['title']), xbmc.LOGWARNING)
             continue
-        add_favourite_context_menu_item = (get_translation(32026),
-                                           'RunPlugin({0}?action=add_favourite&type=episode&id={1}&label={2})'.
-                                           format(_url, stream['id'], list_item.getLabel()))
-        context_menu.append(add_favourite_context_menu_item)
-        # Set 'IsPlayable' property to 'true'.
-        # This is mandatory for playable items!
-        list_item.setProperty('IsPlayable', 'true')
-        list_item.setInfo(type='Video', infoLabels=info_labels)
-        list_item.addStreamInfo('video', stream_info)
-        list_item.addContextMenuItems(context_menu)
         # Create a URL for the plugin recursive callback.
         # Example: plugin://plugin.video.example/?action=play&video=http://www.vidsplay.com/vids/crab.mp4
         url = '{0}?action=play&stream={1}'.format(_url, stream['id'])
@@ -396,6 +254,157 @@ def list_streams(listing, streams, offset_url):
     # Finish creating a virtual folder.
     xbmcplugin.endOfDirectory(_handle)
     xbmcplugin.setContent(_handle, 'movies')
+
+
+def create_list_item_from_stream(stream):
+    info_labels = {}
+    stream_info = {}
+    context_menu = []
+    list_item = None
+    unplayable = False
+    unplayable_marker_category = '[COLOR ' + get_color('unplayableColor') + ']!!![/COLOR] '
+    unplayable_marker_drm = '[COLOR ' + get_color('unplayableColor') + ']!-![/COLOR] '
+    # Create a list item with a text label and a thumbnail image.
+    if 'subject' in stream:
+        # Check if the stream is included in any of the unplayable categories
+        category_id = ''
+        for subject in stream['subject']:
+            if subject['id'] in _unplayableCategories:
+                unplayable = True
+                category_id = subject['id']
+                break
+            if 'broader' in subject:
+                if subject['broader']['id'] in _unplayableCategories:
+                    unplayable = True
+                    category_id = subject['broader']['id']
+                    break
+        if unplayable:
+            if _addon.getSetting('showUnplayable') == 'false':
+                log('Stream is unplayable. It is in category: {0}'.format(category_id))
+                return
+    for language_code in get_language_codes():
+        if language_code in stream['title']:
+            if unplayable:
+                list_item = xbmcgui.ListItem(
+                    label=unplayable_marker_category + str(stream['title'][language_code].encode('utf-8')) + ' ')
+            else:
+                list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
+            break
+    if list_item is None:
+        log('no title for stream: {0}'.format(stream['title']), xbmc.LOGWARNING)
+        return
+    if 'available' in stream['image']:
+        if stream['image']['available']:
+            image_url = '{0}/{1}/{2}.{3}'.format(
+                _image_cdn_url, _image_transformation, stream['image']['id'], 'png')
+            list_item.setThumbnailImage(image_url)
+    for language_code in get_language_codes():
+        if language_code in stream['description']:
+            info_labels['plot'] = stream['description'][language_code].encode('utf-8')
+            break
+    if 'promotionTitle' in stream:
+        for language_code in get_language_codes():
+            if language_code in stream['promotionTitle']:
+                info_labels['tagline'] = stream['promotionTitle'][language_code].encode('utf-8')
+                break
+    if 'duration' in stream:
+        duration = get_timedelta_from_duration(stream['duration'])
+        # The total_seconds function was introduced in Python 2.7
+        if duration is not None and 'total_seconds' in dir(duration):
+            info_labels['duration'] = duration.total_seconds()
+            stream_info = {'duration': duration.total_seconds()}
+    if 'partOfSeason' in stream or 'episodeNumber' in stream:
+        season_string = ''
+        episode_string = ''
+        if 'partOfSeason' in stream:
+            if 'seasonNumber' in stream['partOfSeason']:
+                season_number = stream['partOfSeason']['seasonNumber']
+                info_labels['season'] = season_number
+                season_string = 'S{0}'.format(str(season_number))
+        if 'episodeNumber' in stream:
+            episode_number = stream['episodeNumber']
+            info_labels['episode'] = episode_number
+            episode_string = 'E{0}'.format(str(episode_number))
+        list_item.setLabel('{0} - {1}{2}'.format(list_item.getLabel(), season_string, episode_string))
+    if 'itemTitle' in stream:
+        for language_code in get_language_codes():
+            if language_code in stream['itemTitle']:
+                list_item.setLabel('{0} - {1}'.format(list_item.getLabel(),
+                                                      stream['itemTitle'][language_code].encode('utf-8')))
+                break
+    if 'partOfSeries' in stream:
+        if 'id' in stream['partOfSeries']:
+            series_title = 'SERIES TITLE NOT FOUND'
+            if 'title' in stream['partOfSeries']:
+                for language_code in get_language_codes():
+                    if language_code in stream['partOfSeries']['title']:
+                        series_title = stream['partOfSeries']['title'][language_code]
+                        break
+            add_series_favourite_context_menu_item = \
+                (get_translation(32027),
+                 'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
+                 .format(_url, stream['partOfSeries']['id'], series_title.encode('utf-8')))
+            context_menu.append(add_series_favourite_context_menu_item)
+    found_current_publication = False
+    for publication in stream['publicationEvent']:
+        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+            if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
+                # We need to skip publications that can only be seen in Finland
+                continue
+            if _addon.getSetting("showUnplayable") == "true":
+                content_protection_id = publication["media"]["contentProtection"][0]["id"]
+                if content_protection_id == '22-2' or content_protection_id == '22-3':
+                    list_item.setLabel('{0}{1}'.format(unplayable_marker_drm, list_item.getLabel()))
+            found_current_publication = True
+            if 'startTime' in publication and 'endTime' in publication:
+                light_tag_open = ''
+                light_tag_close = ''
+                bold_tag_open = ''
+                bold_tag_close = ''
+                if int(xbmcaddon.Addon('xbmc.addon').getAddonInfo('version').split('.', 1)[0]) > 15:
+                    light_tag_open = '[LIGHT]'
+                    light_tag_close = '[/LIGHT]'
+                if _addon.getSetting("boldTitles") == "true":
+                    bold_tag_open = '[B]'
+                    bold_tag_close = '[/B]'
+                if _addon.getSetting('showExtraInfo') == 'true':
+                    list_item.setLabel('{0}{1}'.format(list_item.getLabel(), '[CR]'))
+                    out_format = '%d.%m.%Y'
+                    start_time = time.strptime(publication['startTime'].split('+')[0], _yle_time_format)
+                    start_time = time.strftime(out_format, start_time)
+                    end_time = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
+                    end_time = time.strftime(out_format, end_time)
+                    # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B]
+                    # [LIGHT][COLOR grey]1.1.2016 until 1.1.2017[/COLOR][/LIGHT]'
+                    list_item.setLabel('{0}[COLOR {1}]{2}[/COLOR]{3}{4}[COLOR {5}]{6} | {7} {8}[/COLOR]{9}'.
+                                       format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
+                                              bold_tag_close, light_tag_open, get_color('dateColor'), start_time,
+                                              get_translation(32054), end_time, light_tag_close))
+                else:
+                    ttl = time.strptime(publication['endTime'].split('+')[0], _yle_time_format)
+                    now = time.strptime(time.strftime(_yle_time_format), _yle_time_format)
+                    ttl = (ttl.tm_year - now.tm_year) * 365 + ttl.tm_yday - now.tm_yday
+                    # Example: '[B][COLOR grey]Program - S1E1[/COLOR][/B] |
+                    # [LIGHT][COLOR grey]30 d remaining[/COLOR][/LIGHT]'
+                    list_item.setLabel("{0}[COLOR {1}]{2}[/COLOR]{3} | {4}[COLOR {5}]{6} {7}[/COLOR]{8} ".
+                                       format(bold_tag_open, get_color('titleColor'), list_item.getLabel(),
+                                              bold_tag_close, light_tag_open, get_color('dateColor'), str(ttl),
+                                              get_translation(32055), light_tag_close))
+            break
+    if not found_current_publication:
+        log("No publication with 'currently': {0}".format(stream['title']), xbmc.LOGWARNING)
+        return
+    add_favourite_context_menu_item = (get_translation(32026),
+                                       'RunPlugin({0}?action=add_favourite&type=episode&id={1}&label={2})'.
+                                       format(_url, stream['id'], list_item.getLabel()))
+    context_menu.append(add_favourite_context_menu_item)
+    # Set 'IsPlayable' property to 'true'.
+    # This is mandatory for playable items!
+    list_item.setProperty('IsPlayable', 'true')
+    list_item.setInfo(type='Video', infoLabels=info_labels)
+    list_item.addStreamInfo('video', stream_info)
+    list_item.addContextMenuItems(context_menu)
+    return list_item
 
 
 def play_stream(path):
@@ -630,14 +639,25 @@ def favourites(favourites_folder="favourites"):
             favourite_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, fav_id, 0)
             image_url = get_image_url_for_series(fav_id)
             if image_url:
-                favourite_list_item.setThumbnailImage(image_url)
+                if image_url == 'NO_ITEMS':
+                    favourite_list_item.setLabel('{0} [COLOR red]{1}[/COLOR]'.format(
+                        favourite_list_item.getLabel(), get_translation(32072)))
+                else:
+                    favourite_list_item.setThumbnailImage(image_url)
             is_folder = True
         elif fav_type == 'episode':
-            favourite_url = '{0}?action=play&stream={1}'.format(_url, fav_id)
-            favourite_list_item.setProperty('IsPlayable', 'true')
-            image_url = '{0}/{1}/13-{2}.{3}'.format(_image_cdn_url, _image_transformation, fav_id, 'png')
-            favourite_list_item.setThumbnailImage(image_url)
-            is_folder = False
+            list_item = create_list_item_from_stream(get_item(fav_id))
+            if list_item is None:
+                favourite_url = '{0}?action=favourites&folder={1}'.format(_url, favourites_folder)
+                image_url = '{0}/{1}/13-{2}.{3}'.format(_image_cdn_url, _image_transformation, fav_id, 'png')
+                favourite_list_item.setThumbnailImage(image_url)
+                favourite_list_item.setLabel('{0} [COLOR red]{1}[/COLOR]'.format(
+                    favourite_list_item.getLabel(), get_translation(32072)))
+                is_folder = True
+            else:
+                favourite_url = '{0}?action=play&stream={1}'.format(_url, fav_id)
+                favourite_list_item = list_item
+                is_folder = False
         elif fav_type == 'folder':
             favourite_list_item.setLabel('[B]' + fav_label.replace('favFolder', '').upper() + '[/B]')
             favourite_url = '{0}?action=favourites&folder={1}'.format(_url, fav_label)

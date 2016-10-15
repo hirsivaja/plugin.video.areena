@@ -298,3 +298,7 @@ msgstr "Siirrä edeltävään hakemistoon"
 msgctxt "#32071"
 msgid "Add folder"
 msgstr "Lisää hakemisto"
+
+msgctxt "#32072"
+msgid "NOT AVAILABLE"
+msgstr "EI SAATAVILLA"

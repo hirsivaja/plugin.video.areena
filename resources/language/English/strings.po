@@ -298,3 +298,7 @@ msgstr ""
 msgctxt "#32071"
 msgid "Add folder"
 msgstr ""
+
+msgctxt "#32072"
+msgid "NOT AVAILABLE"
+msgstr ""
