@@ -515,7 +515,31 @@ def live_tv_channels(path=None):
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
         xbmcplugin.endOfDirectory(_handle)
     else:
-        xbmcplugin.setResolvedUrl(_handle, True, listitem=xbmcgui.ListItem(path=path))
+        xbmcplugin.setResolvedUrl(
+            _handle, True, listitem=xbmcgui.ListItem(path=get_resolution_specific_url_for_live_tv(path)))
+
+
+def get_resolution_specific_url_for_live_tv(path):
+    """
+    Use the master url to get the correct resolution specific url.
+    :param path: path to master.m3u8
+    :return: resolution specific path
+    """
+    max_resolution = int(_addon.getSetting("maxResolution"))
+    if max_resolution == 2:
+        bandwidth = 184
+    elif max_resolution == 3:
+        bandwidth = 364
+    elif max_resolution == 4:
+        bandwidth = 664
+    elif max_resolution == 5:
+        bandwidth = 1064
+    elif max_resolution == 6:
+        bandwidth = 1564
+    else:
+        return path
+    replace_url = 'index_{0}_av-p.m3u8?sd=10&rebase=on'.format(bandwidth)
+    return path.replace('master.m3u8', replace_url)
 
 
 def search(search_string=None, offset=0, clear_search=False, remove_string=None):
