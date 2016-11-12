@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.areena"
-version="2.3.5"
-name="Areena API plugin"
-provider-name="Toni Lappalainen">
-<requires>
-  <import addon="xbmc.python" version="2.14.0"/>
-</requires>
-<extension point="xbmc.python.pluginsource" library="main.py">
-  <provides>video</provides>
-</extension>
-<extension point="xbmc.addon.metadata">
-  <summary lang="en">Areena API plugin</summary>
-  <description lang="en">YLE Areena plugin, toteutettu virallisen rajapinnan avulla. Ensimmäinen versio: Samuli Lappi</description>
-</extension>
+       version="2.4.0"
+       name="YLE Areena (unofficial)"
+       provider-name="Toni Lappalainen">
+    <requires>
+        <import addon="xbmc.python" version="2.14.0"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="main.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <language>en</language>
+        <language>fi</language>
+        <language>sv</language>
+        <summary lang="en">Watch YLE Areena</summary>
+        <summary lang="fi">Katso YLE Areenaa</summary>
+        <summary lang="sv">Titta på YLE Arenan</summary>
+        <description lang="en">YLE Areena plugin, using public API. Watch content from areena.yle.fi.</description>
+        <description lang="fi">YLE Areena lisäosa, toteutettu julkisen rajapinnan avulla. Katso ohjelmia Areenasta, areena.yle.fi.</description>
+        <description lang="sv">YLE Areena plugin, med publik API. Titta program från arenan.yle.fi.</description>
+        <license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
+        <source>http://github.com/hirsivaja/plugin.video.areena</source>
+    </extension>
 </addon>
