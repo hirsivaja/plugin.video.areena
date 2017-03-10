@@ -817,7 +817,7 @@ def get_app_key():
 
 
 def get_app_id_and_app_key():
-    tv = "http://areena.yle.fi/tv"
+    tv = "http://areena.yle.fi/tv/ohjelmat/sarjat"
     response = get_url_response(tv).read()
     start = response.index('window.ohjelmat')
     start = response.index('applicationId:', start)
