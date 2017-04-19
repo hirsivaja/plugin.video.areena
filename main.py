@@ -293,7 +293,7 @@ def list_sub_categories_with_series(base_category):
 def list_series_from_category(category, offset):
     listing = []
     app_id, app_key = get_app_id_and_app_key()
-    url = 'https://areena.api.yle.fi/v1/ui/packages/{0}/content?app_id={1}&app_key={2}&o=ao&language=fi&v=1' \
+    url = 'https://areena.api.yle.fi/v1/ui/packages/{0}/contentbytab?app_id={1}&app_key={2}&o=a-o&language=fi&v=1' \
           '&offset={3}&limit=25'.format(category, app_id, app_key, offset)
     log(url)
     response = get_url_response(url)
