@@ -27,11 +27,10 @@ _addon = xbmcaddon.Addon(id=_addonid)
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
 _unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
 
+_tv_services = ['yle-tv1', 'yle-tv2', 'yle-teema-fem', 'yle-areena', 'tv-finland']
+
 _yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8'
 _yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8'
-_yle_fem_fi_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemfihls_1@103185/master.m3u8'
-_yle_fem_se_live_url = 'http://yletv-lh.akamaihd.net/i/ylefemsehls_1@103186/master.m3u8'
-_yle_teema_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemahls_1@103187/master.m3u8'
 _image_cdn_url = 'http://images.cdn.yle.fi/image/upload'
 _image_transformation = 'w_240,h_240,c_fit'
 
@@ -220,12 +219,13 @@ def get_image_url_for_series(series_id):
     return None
 
 
-def list_streams(listing, streams, offset_url):
+def list_streams(listing, streams, offset_url, item_limit=25):
     """
     Create the list of playable streams in the Kodi interface.
     :param listing: list for the streams. Can include some fixed elements
     :param streams: json of streams to list
     :param offset_url: url that opens next page of streams
+    :param item_limit: maximum number of items per page
     :return: None
     """
     # Iterate through the streams.
@@ -241,7 +241,7 @@ def list_streams(listing, streams, offset_url):
         is_folder = False
         # Add our item to the listing as a 3-element tuple.
         listing.append((url, list_item, is_folder))
-    if len(listing) > 24:
+    if len(listing) >= item_limit:
         list_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
             get_color('menuItemColor'), get_translation(32008)))
         listing.append((offset_url, list_item, True))
@@ -500,18 +500,29 @@ def live_tv_channels(path=None):
         yle_2_url = '{0}?action=live&path={1}'.format(_url, _yle_tv2_live_url)
         yle_2.setProperty('IsPlayable', 'true')
         listing.append((yle_2_url, yle_2, False))
-        yle_fem = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM (FI)'))
-        yle_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_fi_live_url)
-        yle_fem.setProperty('IsPlayable', 'true')
-        listing.append((yle_fem_url, yle_fem, False))
-        yle_fem_se = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE FEM (SV)'))
-        yle_fem_se_url = '{0}?action=live&path={1}'.format(_url, _yle_fem_se_live_url)
-        yle_fem_se.setProperty('IsPlayable', 'true')
-        listing.append((yle_fem_se_url, yle_fem_se, False))
-        yle_teema = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TEEMA'))
-        yle_teema_url = '{0}?action=live&path={1}'.format(_url, _yle_teema_live_url)
-        yle_teema.setProperty('IsPlayable', 'true')
-        listing.append((yle_teema_url, yle_teema, False))
+        for service in _tv_services:
+            service_name = service.replace('-', ' ').title()
+            data = get_areena_api_json_data('programs/schedules', 'now.json', ['service=' + service])
+            for item in data:
+                content = item['content']
+                for language_code in get_language_codes():
+                    if language_code in content['title']:
+                        content['title'][language_code] = \
+                            service_name + ': ' + content['title'][language_code]
+                list_item = create_list_item_from_stream(content)
+                if list_item:
+                    url = '{0}?action=play&stream={1}'.format(_url, content['id'])
+                    listing.append((url, list_item, False))
+                else:
+                    title = ''
+                    for language_code in get_language_codes():
+                        if language_code in content['title']:
+                            title = ' - ' + content['title'][language_code]
+                            break
+                    not_available_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
+                        get_color('menuItemColor'),  get_translation(32072) + title))
+                    not_available_item.setProperty('IsPlayable', 'false')
+                    listing.append((None, not_available_item, False))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
         xbmcplugin.endOfDirectory(_handle)
     else:
