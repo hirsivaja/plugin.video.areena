@@ -470,23 +470,12 @@ def play_stream(path):
 def get_resolution_specific_url(path):
     """
     Use the master url to get the correct resolution specific url.
+    This method is not working anymore since the url format has been changed.
     :param path: path to master.m3u8
     :return: resolution specific path
     """
-    response = get_url_response(path).read()
-    log(response)
-    resolution_urls = []
-    for line in response.split('\n'):
-        if line.startswith('http'):
-            resolution_urls.append(line)
-    max_resolution = int(_addon.getSetting("maxResolution")) - 2
-    if max_resolution < 0:
-        return path.replace('master.m3u8', 'index_0_a.m3u8')
-    for resolution in xrange(max_resolution, -1, -1):
-        for res_url in resolution_urls:
-            if 'index_{0}_av.m3u8'.format(resolution) in res_url:
-                return '{0}?{1}'.format(res_url.split('?', 1)[0], path.split('?', 1)[1] if '?' in path else 'null')
-    raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
+    # TODO Redo this method to work with current m3u8 version
+    return path
 
 
 def live_tv_channels(path=None):

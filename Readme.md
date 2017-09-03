@@ -16,9 +16,3 @@ be viewed from Finland.
 
 Credit for the first version of the plugin goes to Samuli Lappi
 <https://github.com/Hemmu/plugin.video.areena>
-
-**For users of Kodi 15: Set `maximum resolution` to anything other than `Automatic`.**
-The setting can be found from the advanced tab of the settings menu. This solves the issue of
-videos restricted to Finland not showing.
-
-With other Kodi versions use `Automatic`.
