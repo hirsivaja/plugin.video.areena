@@ -509,7 +509,7 @@ def live_tv_channels(path=None):
                             title = ' - ' + content['title'][language_code]
                             break
                     not_available_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
-                        get_color('menuItemColor'),  get_translation(32072) + title))
+                        get_color('menuItemColor'),  get_translation(32072) + title.encode('utf-8')))
                     not_available_item.setProperty('IsPlayable', 'false')
                     listing.append((None, not_available_item, False))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
