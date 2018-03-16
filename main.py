@@ -470,11 +470,48 @@ def play_stream(path):
 def get_resolution_specific_url(path):
     """
     Use the master url to get the correct resolution specific url.
-    This method is not working anymore since the url format has been changed.
+    Parsing the m3u8 to find the correct resolution. Unfortunately not all resolutions
+    are available for all items. In that case using the closest larger resolution stream.
     :param path: path to master.m3u8
-    :return: resolution specific path
+    :return: resolution specific path or master path if not found
     """
-    # TODO Redo this method to work with current m3u8 version
+    max_resolution_setting = int(_addon.getSetting('maxResolution'))
+    if max_resolution_setting > 0:
+        if max_resolution_setting == 1:
+            max_resolution = 9001
+        elif max_resolution_setting == 2:
+            max_resolution = 144
+        elif max_resolution_setting == 3:
+            max_resolution = 270
+        elif max_resolution_setting == 4:
+            max_resolution = 360
+        elif max_resolution_setting == 5:
+            max_resolution = 480
+        elif max_resolution_setting == 6:
+            max_resolution = 720
+        else:
+            max_resolution = 1080
+        m3u8 = urllib.urlopen(path)
+        correct_resolution = False
+        for line in m3u8.readlines():
+            if correct_resolution:
+                return line.rstrip()
+            if line.startswith('#EXT-X-STREAM-INF:'):
+                value_pairs = line.replace('#EXT-X-STREAM-INF:', '').split(',')
+                resolution_field_found = False
+                for value_pair in value_pairs:
+                    if '=' not in value_pair:
+                        continue
+                    (name, value) = value_pair.split('=')
+                    if name == 'RESOLUTION':
+                        resolution_field_found = True
+                        (width, height) = value.split('x')
+                        if int(height) >= max_resolution:
+                            log('Found resolution specific url for resolution {0}'.format(max_resolution))
+                            correct_resolution = True
+                if max_resolution == 9001 and not resolution_field_found:
+                    correct_resolution = True
+        log('Did not find resolution specific url. Using base path.')
     return path
 
 
