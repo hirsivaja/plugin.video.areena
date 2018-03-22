@@ -472,9 +472,16 @@ def get_resolution_specific_url(path):
     Use the master url to get the correct resolution specific url.
     Parsing the m3u8 to find the correct resolution. Unfortunately not all resolutions
     are available for all items. In that case using the closest larger resolution stream.
-    :param path: path to master.m3u8
+    :param path: path to master.m3u8 or index.m3u8
     :return: resolution specific path or master path if not found
     """
+    if 'master.m3u8' in path:
+        return get_resolution_specific_url_from_master(path)
+    else:
+        return get_resolution_specific_url_from_index(path)
+
+
+def get_resolution_specific_url_from_index(path):
     max_resolution_setting = int(_addon.getSetting('maxResolution'))
     if max_resolution_setting > 0:
         if max_resolution_setting == 1:
@@ -513,6 +520,23 @@ def get_resolution_specific_url(path):
                     correct_resolution = True
         log('Did not find resolution specific url. Using base path.')
     return path
+
+
+def get_resolution_specific_url_from_master(path):
+    response = get_url_response(path).read()
+    log(response)
+    resolution_urls = []
+    for line in response.split('\n'):
+        if line.startswith('http'):
+            resolution_urls.append(line)
+    max_resolution = int(_addon.getSetting("maxResolution")) - 2
+    if max_resolution < 0:
+        return path.replace('master.m3u8', 'index_0_a.m3u8')
+    for resolution in xrange(max_resolution, -1, -1):
+        for res_url in resolution_urls:
+            if 'index_{0}_av.m3u8'.format(resolution) in res_url:
+                return '{0}?{1}'.format(res_url.split('?', 1)[0], path.split('?', 1)[1] if '?' in path else 'null')
+    raise RuntimeError('Could not find resolution specific url with resolution setting {0}'.format(max_resolution))
 
 
 def live_tv_channels(path=None):
