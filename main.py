@@ -31,6 +31,7 @@ _tv_services = ['yle-tv1', 'yle-tv2', 'yle-teema-fem', 'yle-areena', 'tv-finland
 
 _yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8'
 _yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8'
+_yle_teema_fem_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemafemfi_1@490775/master.m3u8'
 _image_cdn_url = 'http://images.cdn.yle.fi/image/upload'
 _image_transformation = 'w_240,h_240,c_fit'
 
@@ -550,6 +551,11 @@ def live_tv_channels(path=None):
         yle_2_url = '{0}?action=live&path={1}'.format(_url, _yle_tv2_live_url)
         yle_2.setProperty('IsPlayable', 'true')
         listing.append((yle_2_url, yle_2, False))
+        yle_teema_fem = xbmcgui.ListItem(
+            label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TEEMA/FEM'))
+        yle_teema_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_teema_fem_live_url)
+        yle_teema_fem.setProperty('IsPlayable', 'true')
+        listing.append((yle_teema_fem_url, yle_teema_fem, False))
         for service in _tv_services:
             service_name = service.replace('-', ' ').title()
             data = get_areena_api_json_data('programs/schedules', 'now.json', ['service=' + service])
