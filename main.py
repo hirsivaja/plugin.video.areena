@@ -544,16 +544,16 @@ def live_tv_channels(path=None):
     if not path:
         listing = []
         yle_1 = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TV1'))
-        yle_1_url = '{0}?action=live&path={1}'.format(_url, _yle_tv1_live_url)
+        yle_1_url = _yle_tv1_live_url
         yle_1.setProperty('IsPlayable', 'true')
         listing.append((yle_1_url, yle_1, False))
         yle_2 = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TV2'))
-        yle_2_url = '{0}?action=live&path={1}'.format(_url, _yle_tv2_live_url)
+        yle_2_url = _yle_tv2_live_url
         yle_2.setProperty('IsPlayable', 'true')
         listing.append((yle_2_url, yle_2, False))
         yle_teema_fem = xbmcgui.ListItem(
             label='[COLOR {0}]{1}[/COLOR]'.format(get_color('menuItemColor'), 'YLE TEEMA/FEM'))
-        yle_teema_fem_url = '{0}?action=live&path={1}'.format(_url, _yle_teema_fem_live_url)
+        yle_teema_fem_url = _yle_teema_fem_live_url
         yle_teema_fem.setProperty('IsPlayable', 'true')
         listing.append((yle_teema_fem_url, yle_teema_fem, False))
         for service in _tv_services:
