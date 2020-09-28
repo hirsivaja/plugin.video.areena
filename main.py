@@ -29,9 +29,9 @@ _unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
 
 _tv_services = ['yle-tv1', 'yle-tv2', 'yle-teema-fem', 'yle-areena', 'tv-finland']
 
-_yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8'
-_yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8'
-_yle_teema_fem_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemafemfi_1@490775/master.m3u8'
+_yle_tv1_live_url = 'http://yletv-lh.akamaihd.net/i/yletv1hls_1@103188/master.m3u8?__b__=2764'
+_yle_tv2_live_url = 'http://yletv-lh.akamaihd.net/i/yletv2hls_1@103189/master.m3u8?__b__=2764'
+_yle_teema_fem_live_url = 'http://yletv-lh.akamaihd.net/i/yleteemafemfi_1@490775/master.m3u8?__b__=2764'
 _image_cdn_url = 'http://images.cdn.yle.fi/image/upload'
 _image_transformation = 'w_240,h_240,c_fit'
 
