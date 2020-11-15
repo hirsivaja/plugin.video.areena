@@ -116,16 +116,16 @@ msgid "Favourites"
 msgstr "Favoriter"
 
 msgctxt "#32026"
-msgid "Add item to favourites"
-msgstr "Sätt till i favoriter"
+msgid "Add item to plugin favourites"
+msgstr "Sätt till i tillägg favoriter"
 
 msgctxt "#32027"
-msgid "Add series to favourites"
-msgstr "Sätt till serie i favoriter"
+msgid "Add series to plugin favourites"
+msgstr "Sätt till serie i tillägg favoriter"
 
 msgctxt "#32028"
-msgid "Remove from favourites"
-msgstr "Ta bort från favoriter"
+msgid "Remove from plugin favourites"
+msgstr "Ta bort från tillägg favoriter"
 
 msgctxt "#32029"
 msgid "Remove search item"

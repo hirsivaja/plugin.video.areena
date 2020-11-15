@@ -116,15 +116,15 @@ msgid "Favourites"
 msgstr ""
 
 msgctxt "#32026"
-msgid "Add item to favourites"
+msgid "Add item to plugin favourites"
 msgstr ""
 
 msgctxt "#32027"
-msgid "Add series to favourites"
+msgid "Add series to plugin favourites"
 msgstr ""
 
 msgctxt "#32028"
-msgid "Remove from favourites"
+msgid "Remove from plugin favourites"
 msgstr ""
 
 msgctxt "#32029"

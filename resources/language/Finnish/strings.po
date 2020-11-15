@@ -116,16 +116,16 @@ msgid "Favourites"
 msgstr "Suosikit"
 
 msgctxt "#32026"
-msgid "Add item to favourites"
-msgstr "Lisää ohjelma suosikkeihin"
+msgid "Add item to plugin favourites"
+msgstr "Lisää jakso lisäosan suosikkeihin"
 
 msgctxt "#32027"
-msgid "Add series to favourites"
-msgstr "Lisää sarja suosikkeihin"
+msgid "Add series to plugin favourites"
+msgstr "Lisää sarja lisäosan suosikkeihin"
 
 msgctxt "#32028"
-msgid "Remove from favourites"
-msgstr "Poista suosikeista
+msgid "Remove from plugin favourites"
+msgstr "Poista lisäosan suosikeista"
 
 msgctxt "#32029"
 msgid "Remove search item"
