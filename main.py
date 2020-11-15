@@ -439,6 +439,16 @@ def play_stream(path):
             break
     # Create a playable item with a path to play.
     play_item = xbmcgui.ListItem(path=path)
+    label = u"YLE Areena"
+    if "title" in data:
+        for language_code in get_language_codes():
+            if language_code in data["title"]:
+                label = u"{}: {}".format(label, data["title"][language_code])
+                break
+    play_item.setLabel(label)
+    if "image" in data and "available" in data["image"] and data["image"]["available"]:
+        image_url = '{0}/{1}/{2}.{3}'.format(_image_cdn_url, _image_transformation, data['image']['id'], 'png')
+        play_item.setThumbnailImage(image_url)
     play_item.setSubtitles(subtitle_list)
     # Report usage to YLE
     response = get_url_response(report_url)
