@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.areena"
-       version="2.4.5"
+       version="2.5.0"
        name="YLE Areena (unofficial)"
        provider-name="Toni Lappalainen">
     <requires>

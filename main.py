@@ -4,7 +4,9 @@
 # Created on: 2015-12-05
 
 import sys
+import os
 import urllib
+import urllib2
 import json
 import base64
 from urlparse import parse_qsl
@@ -15,6 +17,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
+import xbmcvfs
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
@@ -23,6 +26,12 @@ _handle = int(sys.argv[1])
 
 _addonid = 'plugin.video.areena'
 _addon = xbmcaddon.Addon(id=_addonid)
+_profile_dir = xbmc.translatePath(_addon.getAddonInfo('profile'))
+
+_temp = os.path.join(_profile_dir, 'temp', '')
+
+if not xbmcvfs.exists(_temp):
+    xbmcvfs.mkdirs(_temp)
 
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
 _unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
@@ -430,7 +439,8 @@ def play_stream(path):
             encrypted_url = playout_data[0]['url']
             subtitles = playout_data[0]['subtitles']
             for subtitle in subtitles:
-                subtitle_list.append(subtitle['uri'])
+                subtitle_file = download_subtitle(subtitle['uri'], "{0}.{1}.sub".format(media_id, subtitle['lang']))
+                subtitle_list.append(subtitle_file)
             path = decrypt_url(encrypted_url)
             log("decrypted path: " + path)
             if int(_addon.getSetting("maxResolution")) > 0 and not media_is_audio:
@@ -476,6 +486,15 @@ def play_stream(path):
             return
     # Pass the item to the Kodi player.
     xbmcplugin.setResolvedUrl(_handle, True, listitem=play_item)
+
+
+def download_subtitle(url, subtitle_name):
+    subtitle_file = os.path.join(_temp, subtitle_name)
+
+    response = urllib2.urlopen(url)
+    with open(subtitle_file, "w") as local_file:
+        local_file.write(response.read())
+    return subtitle_file
 
 
 def get_resolution_specific_url(path):
