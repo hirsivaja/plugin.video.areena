@@ -6,13 +6,14 @@
 import sys
 import os
 import urllib
-import urllib2
+import urllib.request
+import urllib.parse
 import json
 import base64
-from urlparse import parse_qsl
 import datetime
 import time
 import re
+import pyaes
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -53,14 +54,8 @@ def log(txt, log_level=xbmc.LOGDEBUG):
     :return: None
     """
     if (_addon.getSetting("debug") == "true") or (log_level != xbmc.LOGDEBUG):
-        if isinstance(txt, str):
-            try:
-                txt = txt.decode("utf-8")
-            except UnicodeDecodeError:
-                xbmc.log('Could not decode to Unicode: {0}'.format(txt), level=xbmc.LOGWARNING)
-                return
         message = u'%s: %s' % (_addonid, txt)
-        xbmc.log(msg=message.encode("utf-8"), level=log_level)
+        xbmc.log(msg=message, level=log_level)
 
 
 def get_areena_api_json_data(folder_name, json_name, parameters):
@@ -190,10 +185,10 @@ def list_sub_categories(base_category):
                 if language_code in category['title']:
                     if unplayable:
                         category_title = '[COLOR {0}]{1}[/COLOR]'.format(
-                            get_color('unplayableColor'), category['title'][language_code].encode('utf-8'))
+                            get_color('unplayableColor'), category['title'][language_code])
                     else:
                         category_title = '[COLOR {0}]{1}[/COLOR]'.format(
-                            get_color('menuItemColor'), category['title'][language_code].encode('utf-8'))
+                            get_color('menuItemColor'), category['title'][language_code])
                     break
             list_item = xbmcgui.ListItem(label=category_title)
             # Set additional info for the list item.
@@ -296,9 +291,9 @@ def create_list_item_from_stream(stream):
         if language_code in stream['title']:
             if unplayable:
                 list_item = xbmcgui.ListItem(
-                    label=unplayable_marker_category + str(stream['title'][language_code].encode('utf-8')) + ' ')
+                    label=unplayable_marker_category + str(stream['title'][language_code]) + ' ')
             else:
-                list_item = xbmcgui.ListItem(label=str(stream['title'][language_code].encode('utf-8')) + ' ')
+                list_item = xbmcgui.ListItem(label=str(stream['title'][language_code]) + ' ')
             break
     if list_item is None:
         log('no title for stream: {0}'.format(stream['title']), xbmc.LOGWARNING)
@@ -307,15 +302,15 @@ def create_list_item_from_stream(stream):
         if stream['image']['available']:
             image_url = '{0}/{1}/{2}.{3}'.format(
                 _image_cdn_url, _image_transformation, stream['image']['id'], 'png')
-            list_item.setThumbnailImage(image_url)
+            list_item.setArt({"thumb": image_url})
     for language_code in get_language_codes():
         if language_code in stream['description']:
-            info_labels['plot'] = stream['description'][language_code].encode('utf-8')
+            info_labels['plot'] = stream['description'][language_code]
             break
     if 'promotionTitle' in stream:
         for language_code in get_language_codes():
             if language_code in stream['promotionTitle']:
-                info_labels['tagline'] = stream['promotionTitle'][language_code].encode('utf-8')
+                info_labels['tagline'] = stream['promotionTitle'][language_code]
                 break
     if 'duration' in stream:
         duration = get_timedelta_from_duration(stream['duration'])
@@ -339,8 +334,7 @@ def create_list_item_from_stream(stream):
     if 'itemTitle' in stream:
         for language_code in get_language_codes():
             if language_code in stream['itemTitle']:
-                list_item.setLabel('{0} - {1}'.format(list_item.getLabel(),
-                                                      stream['itemTitle'][language_code].encode('utf-8')))
+                list_item.setLabel('{0} - {1}'.format(list_item.getLabel(), stream['itemTitle'][language_code]))
                 break
     if 'partOfSeries' in stream:
         if 'id' in stream['partOfSeries']:
@@ -353,7 +347,7 @@ def create_list_item_from_stream(stream):
             add_series_favourite_context_menu_item = \
                 (get_translation(32027),
                  'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
-                 .format(_url, stream['partOfSeries']['id'], series_title.encode('utf-8')))
+                 .format(_url, stream['partOfSeries']['id'], series_title))
             context_menu.append(add_series_favourite_context_menu_item)
     found_current_publication = False
     for publication in stream['publicationEvent']:
@@ -458,7 +452,7 @@ def play_stream(path):
     play_item.setLabel(label)
     if "image" in data and "available" in data["image"] and data["image"]["available"]:
         image_url = '{0}/{1}/{2}.{3}'.format(_image_cdn_url, _image_transformation, data['image']['id'], 'png')
-        play_item.setThumbnailImage(image_url)
+        play_item.setArt({"thumb": image_url})
     play_item.setSubtitles(subtitle_list)
     # Report usage to YLE
     response = get_url_response(report_url)
@@ -490,10 +484,10 @@ def play_stream(path):
 
 def download_subtitle(url, subtitle_name):
     subtitle_file = os.path.join(_temp, subtitle_name)
-
-    response = urllib2.urlopen(url)
+    with urllib.request.urlopen(url) as f:
+        response = f.read().decode('utf-8')
     with open(subtitle_file, "w") as local_file:
-        local_file.write(response.read())
+        local_file.write(response)
     return subtitle_file
 
 
@@ -528,7 +522,8 @@ def get_resolution_specific_url_from_index(path):
             max_resolution = 720
         else:
             max_resolution = 1080
-        m3u8 = urllib.urlopen(path)
+        with urllib.request.urlopen(path) as f:
+            m3u8 = f.read().decode('utf-8')
         correct_resolution = False
         for line in m3u8.readlines():
             if correct_resolution:
@@ -605,7 +600,7 @@ def live_tv_channels(path=None):
                             title = ' - ' + content['title'][language_code]
                             break
                     not_available_item = xbmcgui.ListItem(label='[COLOR {0}]{1}[/COLOR]'.format(
-                        get_color('menuItemColor'),  get_translation(32072) + title.encode('utf-8')))
+                        get_color('menuItemColor'),  get_translation(32072) + title))
                     not_available_item.setProperty('IsPlayable', 'false')
                     listing.append((None, not_available_item, False))
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
@@ -728,7 +723,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
                 series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, key, 0)
                 image_url = get_image_url_for_series(key)
                 if image_url:
-                    series_list_item.setThumbnailImage(image_url)
+                    series_list_item.setArt({"thumb": image_url})
                 listing.append((series_url, series_list_item, True))
             xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
     xbmcplugin.endOfDirectory(_handle)
@@ -763,14 +758,14 @@ def favourites(favourites_folder="favourites"):
                     favourite_list_item.setLabel('{0} [COLOR red]{1}[/COLOR]'.format(
                         favourite_list_item.getLabel(), get_translation(32072)))
                 else:
-                    favourite_list_item.setThumbnailImage(image_url)
+                    favourite_list_item.setArt({"thumb": image_url})
             is_folder = True
         elif fav_type == 'episode':
             list_item = create_list_item_from_stream(get_item(fav_id))
             if list_item is None:
                 favourite_url = '{0}?action=favourites&folder={1}'.format(_url, favourites_folder)
                 image_url = '{0}/{1}/13-{2}.{3}'.format(_image_cdn_url, _image_transformation, fav_id, 'png')
-                favourite_list_item.setThumbnailImage(image_url)
+                favourite_list_item.setArt({"thumb": image_url})
                 favourite_list_item.setLabel('{0} [COLOR red]{1}[/COLOR]'.format(
                     favourite_list_item.getLabel(), get_translation(32072)))
                 is_folder = True
@@ -909,16 +904,18 @@ def move_favourite_to_folder(fav_type, fav_id, fav_label, fav_old_folder, fav_ne
 
 
 def decrypt_url(encrypted_url):
+    block_size = 16
     enc = base64.b64decode(encrypted_url)
-    iv = enc[:16]
-    try:
-        from Crypto.Cipher import AES
-    except ImportError:
-        import pyaes as AES
-    cipher = AES.new(get_secret_key(), AES.MODE_CBC, iv)
-    decrypted_url = cipher.decrypt(enc[16:])
-    unpadded_url = decrypted_url[:-ord(decrypted_url[len(decrypted_url)-1:])]
-    return unpadded_url
+    iv = enc[:block_size]
+    data = enc[block_size:]
+    cipher = pyaes.Decrypter(pyaes.AESModeOfOperationCBC(get_secret_key().encode(), iv=iv))
+    decrypted_url = cipher.feed(data[0:block_size])
+    index = block_size
+    while index < len(data):
+        decrypted_url += cipher.feed(data[index:index + block_size])
+        index += block_size
+    decrypted_url += cipher.feed()
+    return decrypted_url.decode()
 
 
 def get_app_id():
@@ -962,12 +959,12 @@ def get_secret_key():
 
 def get_url_response(url):
     try:
-        return urllib.urlopen(url)
+        return urllib.request.urlopen(url)
     except IOError as error:
         if 'CERTIFICATE_VERIFY_FAILED' in error.message:
             # The certificate was not found. Let's try without verification.
             import ssl
-            return urllib.urlopen(url, context=ssl._create_unverified_context())
+            return urllib.request.urlopen(url, context=ssl._create_unverified_context())
         elif 'http error' in error.message:
             log('The url [{0}] could not be opened! Error: {1}'.format(url, error.message), xbmc.LOGERROR)
             log('Is the url valid and is the site reachable?', xbmc.LOGERROR)
@@ -1002,7 +999,7 @@ def get_language_codes():
 
 
 def get_translation(translation_id):
-    return _addon.getLocalizedString(translation_id).encode('utf-8')
+    return _addon.getLocalizedString(translation_id)
 
 
 def get_sort_method():
@@ -1129,7 +1126,7 @@ def router(param_string):
     """
     # Parse a URL-encoded param_string to the dictionary of
     # {<parameter>: <value>} elements
-    params = dict(parse_qsl(param_string))
+    params = dict(urllib.parse.parse_qsl(param_string))
     log(params)
 
     # Check the parameters passed to the plugin
