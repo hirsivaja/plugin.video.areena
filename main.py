@@ -34,7 +34,9 @@ if not xbmcvfs.exists(_temp):
     xbmcvfs.mkdirs(_temp)
 
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
-_unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
+# Currently all categories seem to be playable.
+# In the past news and sports could not be played through the API.
+_unplayableCategories = []
 
 _tv_services = ['yle-tv1', 'yle-tv2', 'yle-teema-fem', 'yle-areena', 'tv-finland']
 
@@ -357,7 +359,7 @@ def create_list_item_from_stream(stream):
             context_menu.append(add_series_favourite_context_menu_item)
     found_current_publication = False
     for publication in stream['publicationEvent']:
-        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+        if publication['temporalStatus'] == 'currently' and 'media' in publication:
             if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
                 # We need to skip publications that can only be seen in Finland
                 continue
@@ -427,7 +429,7 @@ def play_stream(path):
     report_url = None
     subtitle_list = []
     for publication in data['publicationEvent']:
-        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+        if publication['temporalStatus'] == 'currently' and 'media' in publication:
             log("Found correct publication, media id: " + publication['media']['id'])
             media_id = publication['media']['id']
             report_url = get_report_url(path, media_id)
