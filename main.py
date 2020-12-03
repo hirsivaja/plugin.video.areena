@@ -3,17 +3,19 @@
 # Author: Samuli Lappi
 # Created on: 2015-12-05
 
-import sys
-import os
-import urllib
-import urllib.request
-import urllib.parse
-import json
 import base64
 import datetime
-import time
-import re
+import json
+import os
 import pyaes
+import random
+import re
+import ssl
+import sys
+import time
+import urllib
+import urllib.parse
+import urllib.request
 import xbmc
 import xbmcaddon
 import xbmcgui
@@ -35,7 +37,7 @@ if not xbmcvfs.exists(_temp):
     xbmcvfs.mkdirs(_temp)
 
 _yle_time_format = '%Y-%m-%dT%H:%M:%S'
-_unplayableCategories = ["5-162", "5-164", "5-226", "5-228"]
+_unplayableCategories = []
 
 _tv_services = ['yle-tv1', 'yle-tv2', 'yle-teema-fem', 'yle-areena', 'tv-finland']
 
@@ -180,6 +182,7 @@ def list_sub_categories(base_category):
             else:
                 continue
         if category['broader']['id'] == base_category:
+            category_title = 'Category title not found.'
             # Create a list item with a text label and a thumbnail image.
             for language_code in get_language_codes():
                 if language_code in category['title']:
@@ -351,7 +354,7 @@ def create_list_item_from_stream(stream):
             context_menu.append(add_series_favourite_context_menu_item)
     found_current_publication = False
     for publication in stream['publicationEvent']:
-        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+        if publication['temporalStatus'] == 'currently' and 'media' in publication:
             if _addon.getSetting("inFinland") == "false" and publication['region'] == 'Finland':
                 # We need to skip publications that can only be seen in Finland
                 continue
@@ -421,7 +424,7 @@ def play_stream(path):
     report_url = None
     subtitle_list = []
     for publication in data['publicationEvent']:
-        if publication['temporalStatus'] == 'currently' and publication['type'] == 'OnDemandPublication':
+        if publication['temporalStatus'] == 'currently' and 'media' in publication:
             log("Found correct publication, media id: " + publication['media']['id'])
             media_id = publication['media']['id']
             report_url = get_report_url(path, media_id)
@@ -557,7 +560,7 @@ def get_resolution_specific_url_from_master(path):
     max_resolution = int(_addon.getSetting("maxResolution")) - 2
     if max_resolution < 0:
         return path.replace('master.m3u8', 'index_0_a.m3u8')
-    for resolution in xrange(max_resolution, -1, -1):
+    for resolution in range(max_resolution, -1, -1):
         for res_url in resolution_urls:
             if 'index_{0}_av.m3u8'.format(resolution) in res_url:
                 return '{0}?{1}'.format(res_url.split('?', 1)[0], path.split('?', 1)[1] if '?' in path else 'null')
@@ -963,8 +966,10 @@ def get_url_response(url):
     except IOError as error:
         if 'CERTIFICATE_VERIFY_FAILED' in error.message:
             # The certificate was not found. Let's try without verification.
-            import ssl
-            return urllib.request.urlopen(url, context=ssl._create_unverified_context())
+            ssl_ctx = ssl.create_default_context()
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = ssl.CERT_NONE
+            urllib.request.urlopen(url, context=ssl_ctx)
         elif 'http error' in error.message:
             log('The url [{0}] could not be opened! Error: {1}'.format(url, error.message), xbmc.LOGERROR)
             log('Is the url valid and is the site reachable?', xbmc.LOGERROR)
@@ -977,7 +982,7 @@ def get_timedelta_from_duration(duration):
     regex = re.compile('(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
                        'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
     # Fetch the match groups with default value of 0 (not None)
-    duration = regex.match(duration).groupdict(0)
+    duration = regex.match(duration).groupdict('0')
 
     # Create the timedelta object from extracted groups
     delta = datetime.timedelta(days=int(duration['days']) + (int(duration['months']) * 30) +
@@ -1056,7 +1061,6 @@ def get_color(setting):
               "tan", "teal", "thistle", "tomato", "transparent", "turquoise", "violet", "wheat", "white", "whitesmoke",
               "yellow", "yellowgreen"]
     if _addon.getSetting('randomColors') == 'true':
-        import random
         return random.choice(colors)
     if color not in colors:
         log('Unknown color "{0}."'.format(color), xbmc.LOGWARNING)
