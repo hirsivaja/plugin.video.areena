@@ -696,13 +696,13 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
 
         search_type, query = search_string.split(':', 1)
         if search_type == 'free':
-            result = get_items(offset, query=query)
+            result = get_items(offset, query=urllib.parse.quote(query))
             search_url = '{0}?action=search&search_string={1}&offset={2}'.format(_url, search_string, offset + 25)
             list_streams([], result, search_url)
         else:
             result = {'data': []}
             while True:
-                data = get_items(offset, query=query, limit='100')
+                data = get_items(offset, query=urllib.parse.quote(query), limit='100')
                 for item in data:
                     result['data'].append(item)
                 offset += 100
@@ -717,7 +717,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
                         for language_code in get_language_codes():
                             if language_code in item['partOfSeries']['title']:
                                 title = item['partOfSeries']['title'][language_code]
-                                if query.decode('utf-8').lower() in title.lower():
+                                if query.lower() in title.lower():
                                     list_of_series[item['partOfSeries']['id']] = \
                                         item['partOfSeries']['title'][language_code]
                                 break
