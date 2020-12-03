@@ -926,9 +926,10 @@ def get_app_id():
     if app_id == '':
         try:
             import credentials
-            app_id = credentials._appId
+            app_id = credentials.appId
         except ImportError:
-            credentials = None
+            credentials = ''
+            app_id = credentials
             log('Could not find the app_id. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return app_id
@@ -939,9 +940,10 @@ def get_app_key():
     if app_key == '':
         try:
             import credentials
-            app_key = credentials._appKey
+            app_key = credentials.appKey
         except ImportError:
-            credentials = None
+            credentials = ''
+            app_key = credentials
             log('Could not find the app_key. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return app_key
@@ -952,9 +954,10 @@ def get_secret_key():
     if secret_key == '':
         try:
             import credentials
-            secret_key = credentials._secretKey
+            secret_key = credentials.secretKey
         except ImportError:
-            credentials = None
+            credentials = ''
+            secret_key = credentials
             log('Could not find the secret_key. Either set it from the setting menu or create credentials.py file.',
                 xbmc.LOGWARNING)
     return secret_key
@@ -979,8 +982,8 @@ def get_url_response(url):
 def get_timedelta_from_duration(duration):
     log(duration)
     # From http://stackoverflow.com/a/2765366
-    regex = re.compile('(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
-                       'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
+    regex = re.compile(r'(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
+                       r'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
     # Fetch the match groups with default value of 0 (not None)
     duration = regex.match(duration).groupdict('0')
 
