@@ -268,7 +268,7 @@ def list_streams(listing, streams, offset_url, item_limit=25):
     xbmcplugin.setContent(_handle, 'movies')
 
 
-def create_list_item_from_stream(stream):
+def create_list_item_from_stream(stream, series_first=True):
     info_labels = {}
     stream_info = {}
     context_menu = []
@@ -350,12 +350,17 @@ def create_list_item_from_stream(stream):
             if 'title' in stream['partOfSeries']:
                 for language_code in get_language_codes():
                     if language_code in stream['partOfSeries']['title']:
-                        series_title = stream['partOfSeries']['title'][language_code]
+                        series_title = stream['partOfSeries']['title'][language_code].encode('utf-8')
+                        if series_title not in list_item.getLabel() and list_item.getLabel() not in series_title:
+                            if series_first:
+                                list_item.setLabel('{0} - {1}'.format(series_title, list_item.getLabel()))
+                            else:
+                                list_item.setLabel('{0} - {1}'.format(list_item.getLabel(), series_title))
                         break
             add_series_favourite_context_menu_item = \
                 (get_translation(32027),
                  'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
-                 .format(_url, stream['partOfSeries']['id'], series_title.encode('utf-8')))
+                 .format(_url, stream['partOfSeries']['id'], series_title))
             context_menu.append(add_series_favourite_context_menu_item)
     found_current_publication = False
     for publication in stream['publicationEvent']:
@@ -596,7 +601,7 @@ def live_tv_channels(path=None):
                     if language_code in content['title']:
                         content['title'][language_code] = \
                             service_name + ': ' + content['title'][language_code]
-                list_item = create_list_item_from_stream(content)
+                list_item = create_list_item_from_stream(content, False)
                 if list_item:
                     url = '{0}?action=play&stream={1}'.format(_url, content['id'])
                     listing.append((url, list_item, False))
@@ -979,8 +984,8 @@ def get_url_response(url):
 def get_timedelta_from_duration(duration):
     log(duration)
     # From http://stackoverflow.com/a/2765366
-    regex = re.compile('(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
-                       'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
+    regex = re.compile(r'(?P<sign>-?)P(?:(?P<years>\d+)Y)?(?:(?P<months>\d+)M)?(?:(?P<days>\d+)D)?(?:T(?:(?P<hours>\d+)'
+                       r'H)?(?:(?P<minutes>\d+)M)?(?:(?P<seconds>\d+)S)?)?')
     # Fetch the match groups with default value of 0 (not None)
     duration = regex.match(duration).groupdict(0)
 
