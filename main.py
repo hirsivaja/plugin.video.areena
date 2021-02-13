@@ -494,7 +494,7 @@ def download_subtitle(url, subtitle_name):
     subtitle_file = os.path.join(_temp, subtitle_name)
     with urllib.request.urlopen(url) as f:
         response = f.read().decode('utf-8')
-    with open(subtitle_file, "w") as local_file:
+    with open(subtitle_file, "w", encoding='utf-8') as local_file:
         local_file.write(response)
     return subtitle_file
 
