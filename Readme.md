@@ -2,7 +2,10 @@ YLE Areena plugin for Kodi
 ===
 
 Kodi plugin implementation of YLE Areena using the official YLE API. The plugin supports tv and
-radio content from <http://areena.yle.fi>
+radio content from <http://areena.yle.fi>.
+
+This plugin is for Kodi 19 or newer. For older versions of Kodi please use
+<https://github.com/hirsivaja/plugin.video.areena/tree/python2>.
 
 In order to use this plugin, you need to create a free **Yle Tunnus**.
 
@@ -11,8 +14,7 @@ your Yle API keys at <https://tunnus.yle.fi/api-avaimet>. To use the plugin thos
 must be entered through the plugins settings menu. Alternatively the keys can also be entered
 to a file called `credentials.py`. An example is provided in the file `credentials.py.sample`.
 
-Some content is not playable via the API, mainly news and sports. Also some content can only
-be viewed from Finland.
+Some content can only be viewed in Finland. Also some special content available in the Areena 
+might not be playable via the API.
 
-Credit for the first version of the plugin goes to Samuli Lappi
-<https://github.com/Hemmu/plugin.video.areena>
+This plugin is a fork from <https://github.com/Hemmu/plugin.video.areena>

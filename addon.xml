@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.areena"
-       version="2.6.1"
+       version="3.0.0"
        name="YLE Areena (unofficial)"
        provider-name="Toni Lappalainen">
     <requires>
-        <import addon="xbmc.python" version="2.14.0"/>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.pyaes" version="1.6.1+matrix.1"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="main.py">
         <provides>video</provides>
