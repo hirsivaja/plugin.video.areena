@@ -302,3 +302,15 @@ msgstr "Lisää hakemisto"
 msgctxt "#32072"
 msgid "NOT AVAILABLE"
 msgstr "EI SAATAVILLA"
+
+msgctxt "#32073"
+msgid "No sorting"
+msgstr ""
+
+msgctxt "#32074"
+msgid "Go to series"
+msgstr ""
+
+msgctxt "#32075"
+msgid "episode.hash"
+msgstr ""

@@ -302,3 +302,15 @@ msgstr "Skapa mapp"
 msgctxt "#32072"
 msgid "NOT AVAILABLE"
 msgstr "INTE TILLGÄNGLIG"
+
+msgctxt "#32073"
+msgid "No sorting"
+msgstr ""
+
+msgctxt "#32074"
+msgid "Go to series"
+msgstr ""
+
+msgctxt "#32075"
+msgid "episode.hash"
+msgstr ""
