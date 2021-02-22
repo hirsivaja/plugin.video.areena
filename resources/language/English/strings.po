@@ -314,3 +314,7 @@ msgstr ""
 msgctxt "#32075"
 msgid "episode.hash"
 msgstr ""
+
+msgctxt "#32076"
+msgid "Season"
+msgstr ""

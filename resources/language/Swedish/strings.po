@@ -305,12 +305,16 @@ msgstr "INTE TILLGÄNGLIG"
 
 msgctxt "#32073"
 msgid "No sorting"
-msgstr ""
+msgstr "Ingen sortering"
 
 msgctxt "#32074"
 msgid "Go to series"
-msgstr ""
+msgstr "Öppna serie"
 
 msgctxt "#32075"
 msgid "episode.hash"
 msgstr ""
+
+msgctxt "#32076"
+msgid "Season"
+msgstr "Säsong"

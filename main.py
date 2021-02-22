@@ -29,7 +29,7 @@ _handle = int(sys.argv[1])
 
 _addonid = 'plugin.video.areena'
 _addon = xbmcaddon.Addon(id=_addonid)
-_profile_dir = xbmc.translatePath(_addon.getAddonInfo('profile'))
+_profile_dir = xbmcvfs.translatePath(_addon.getAddonInfo('profile'))
 
 _temp = os.path.join(_profile_dir, 'temp', '')
 
@@ -105,6 +105,7 @@ def get_items(offset, category=None, query=None, limit=None, series=None, season
     :param query: possible search query
     :param limit: possible search limit
     :param series: possible serie to list
+    :param season: possible season to list
     :return: json data of the items
     """
     parameters = []
@@ -215,6 +216,7 @@ def list_series(series_id, offset):
     series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, int(offset) + 25)
     list_streams([], series, series_url)
 
+
 def list_seasons(series_id):
     seasons = get_areena_api_json_data('series/items', '{}.json'.format(series_id), [])
     listing = []
@@ -227,7 +229,10 @@ def list_seasons(series_id):
                     season_name = season['title'][language_code]
                     break
             season_number = season.get('seasonNumber', None)
-            title = "{}, Kausi {}".format(season_name, season_number) if season_number else season_name
+            if season_number:
+                title = "{}, {} {}".format(season_name, get_translation(32076), season_number)
+            else:
+                title = season_name
             list_item = xbmcgui.ListItem(label=title)
             list_item.setInfo('video', {'title': title})
             url = '{}?action=season&season_id={}'.format(_url, season['id'])
@@ -240,9 +245,13 @@ def list_seasons(series_id):
         # no season data available, fallback to list_series
         list_series(series_id, 0)
 
+
 def list_season(season_id, offset=0):
     episodes = get_items(offset, season=season_id)
-    offset_url = '{0}?action=season&season_id={1}&offset={2}'.format(_url, season_id, int(offset) + 25) if len(episodes) == 25 else None
+    if len(episodes) == 25:
+        offset_url = '{0}?action=season&season_id={1}&offset={2}'.format(_url, season_id, int(offset) + 25)
+    else:
+        offset_url = None
     list_streams([], episodes, offset_url)
 
 
@@ -889,7 +898,7 @@ def remove_favourite(fav_type, fav_id, fav_label, fav_folder):
     if favourite in items:
         items.remove(favourite)
         if fav_type == 'folder':
-            _addon.setSetting(fav_label, None)
+            _addon.setSetting(fav_label, '')
         item_found = True
     _addon.setSetting(fav_folder, "\n".join(items))
     favourites(fav_folder)
@@ -1245,11 +1254,11 @@ def router(param_string):
             new_folder = params['to']
             move_favourite_to_folder(favourite_type, favourite_id, favourite_label, old_folder, new_folder)
         elif params['action'] == 'series':
-            list_series(params['series_id'], params.get('offset',0))
+            list_series(params['series_id'], params.get('offset', 0))
         elif params['action'] == 'seasons':
             list_seasons(params['series_id'])
         elif params['action'] == 'season':
-            list_season(params['season_id'], params.get('offset',0))
+            list_season(params['season_id'], params.get('offset', 0))
         elif params['action'] == 'categories':
             base_category = params['base']
             list_categories(base_category)
