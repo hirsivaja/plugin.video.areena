@@ -233,10 +233,13 @@ def list_seasons(series_id):
                 title = "{}, {} {}".format(season_name, get_translation(32076), season_number)
             else:
                 title = season_name
-            list_item = xbmcgui.ListItem(label=title)
-            list_item.setInfo('video', {'title': title})
-            url = '{}?action=season&season_id={}'.format(_url, season['id'])
-            listing.append((url, list_item, is_folder))
+            if get_items(0, season=season['id'], limit=1):
+                list_item = xbmcgui.ListItem(label=title)
+                list_item.setInfo('video', {'title': title})
+                url = '{}?action=season&season_id={}'.format(_url, season['id'])
+                listing.append((url, list_item, is_folder))
+            else:
+                log('Skipping empty season: {}'.format(title), xbmc.LOGDEBUG)
 
         xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
         xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
