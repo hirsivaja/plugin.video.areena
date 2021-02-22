@@ -97,7 +97,7 @@ def get_categories():
     return get_areena_api_json_data('programs', 'categories.json', [])
 
 
-def get_items(offset, category=None, query=None, limit=None, series=None):
+def get_items(offset, category=None, query=None, limit=None, series=None, season=None):
     """
     Get the list of items.
     :param offset: offset for streams to retrieve
@@ -116,6 +116,8 @@ def get_items(offset, category=None, query=None, limit=None, series=None):
         parameters.append('limit={0}'.format(limit))
     if series:
         parameters.append('series=' + series)
+    if season:
+        parameters.append('season=' + season)
     if _addon.getSetting("showClips") == "false":
         parameters.append('type=program')
     if _addon.getSetting("inFinland") == "false":
@@ -123,7 +125,10 @@ def get_items(offset, category=None, query=None, limit=None, series=None):
     if _addon.getSetting("showUnplayable") == "false":
         parameters.append('contentprotection=22-0,22-1')
     parameters.append('availability=ondemand')
-    parameters.append('order=' + get_sort_method())
+    order = get_sort_method()
+    if order:
+        parameters.append('order=' + order)
+
     parameters.append('offset=' + str(offset))
     return get_areena_api_json_data('programs', 'items.json', parameters)
 
@@ -207,8 +212,38 @@ def list_sub_categories(base_category):
 
 def list_series(series_id, offset):
     series = get_items(offset, series=series_id)
-    series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, offset + 25)
+    series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, series_id, int(offset) + 25)
     list_streams([], series, series_url)
+
+def list_seasons(series_id):
+    seasons = get_areena_api_json_data('series/items', '{}.json'.format(series_id), [])
+    listing = []
+    is_folder = True
+    if 'season' in seasons:
+        for season in seasons.get('season', []):
+            season_name = ''
+            for language_code in get_language_codes():
+                if language_code in season['title']:
+                    season_name = season['title'][language_code]
+                    break
+            season_number = season.get('seasonNumber', None)
+            title = "{}, Kausi {}".format(season_name, season_number) if season_number else season_name
+            list_item = xbmcgui.ListItem(label=title)
+            list_item.setInfo('video', {'title': title})
+            url = '{}?action=season&season_id={}'.format(_url, season['id'])
+            listing.append((url, list_item, is_folder))
+
+        xbmcplugin.addDirectoryItems(_handle, listing, len(listing))
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+        xbmcplugin.endOfDirectory(_handle)
+    else:
+        # no season data available, fallback to list_series
+        list_series(series_id, 0)
+
+def list_season(season_id, offset=0):
+    episodes = get_items(offset, season=season_id)
+    offset_url = '{0}?action=season&season_id={1}&offset={2}'.format(_url, season_id, int(offset) + 25) if len(episodes) == 25 else None
+    list_streams([], episodes, offset_url)
 
 
 def get_image_url_for_series(series_id):
@@ -354,9 +389,14 @@ def create_list_item_from_stream(stream, series_first=True):
                         break
             add_series_favourite_context_menu_item = \
                 (get_translation(32027),
-                 'RunPlugin({0}?action=add_favourite&type=series&id={1}&label={2})'
+                 'RunPlugin({0}?action=add_favourite&type=seasons&id={1}&label={2})'
                  .format(_url, stream['partOfSeries']['id'], series_title))
             context_menu.append(add_series_favourite_context_menu_item)
+            series_context_menu_item = \
+                (get_translation(32074), 'ActivateWindow(Videos,{0}?action=seasons&series_id={1})'
+                 .format(_url, stream['partOfSeries']['id']))
+            context_menu.append(series_context_menu_item)
+
     found_current_publication = False
     for publication in stream['publicationEvent']:
         if publication['temporalStatus'] == 'currently' and 'media' in publication:
@@ -728,7 +768,7 @@ def search(search_string=None, offset=0, clear_search=False, remove_string=None)
                                 break
             for key in list_of_series:
                 series_list_item = xbmcgui.ListItem(label=list_of_series[key])
-                series_url = '{0}?action=series&series_id={1}&offset={2}'.format(_url, key, 0)
+                series_url = '{0}?action=seasons&series_id={1}&offset={2}'.format(_url, key, 0)
                 image_url = get_image_url_for_series(key)
                 if image_url:
                     series_list_item.setArt({"thumb": image_url})
@@ -1040,6 +1080,10 @@ def get_sort_method():
         sort_method = 'publication.endtime'
     elif sort_method == 6:
         sort_method = 'updated'
+    elif sort_method == 7:
+        return None
+    elif sort_method == 8:
+        sort_method = 'episode.hash'
     else:
         raise ValueError('Unknown sort method {0}'.format(sort_method))
 
@@ -1201,8 +1245,11 @@ def router(param_string):
             new_folder = params['to']
             move_favourite_to_folder(favourite_type, favourite_id, favourite_label, old_folder, new_folder)
         elif params['action'] == 'series':
-            series_id = params['series_id']
-            list_series(series_id, offset)
+            list_series(params['series_id'], params.get('offset',0))
+        elif params['action'] == 'seasons':
+            list_seasons(params['series_id'])
+        elif params['action'] == 'season':
+            list_season(params['season_id'], params.get('offset',0))
         elif params['action'] == 'categories':
             base_category = params['base']
             list_categories(base_category)
