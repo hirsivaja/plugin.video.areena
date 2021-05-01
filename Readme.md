@@ -7,14 +7,8 @@ radio content from <http://areena.yle.fi>.
 This plugin is for Kodi 19 or newer. For older versions of Kodi please use
 <https://github.com/hirsivaja/plugin.video.areena/tree/python2>.
 
-In order to use this plugin, you need to create a free **Yle Tunnus**.
+Update on May 2021:
+Yle has disabled the API and most of the features of this plugin are not working anymore.
+The plugin is obsolete and not actively developed anymore.
 
-Yle Tunnus can be created at <http://yle.fi/aihe/yle-tunnus>. After that you can see
-your Yle API keys at <https://tunnus.yle.fi/api-avaimet>. To use the plugin those keys
-must be entered through the plugins settings menu. Alternatively the keys can also be entered
-to a file called `credentials.py`. An example is provided in the file `credentials.py.sample`.
-
-Some content can only be viewed in Finland. Also some special content available in the Areena 
-might not be playable via the API.
-
-This plugin is a fork from <https://github.com/Hemmu/plugin.video.areena>
+Thank you to all the users and contributors over the years!
